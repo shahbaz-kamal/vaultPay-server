@@ -2,25 +2,37 @@ import { NextFunction, Request, Response } from "express";
 
 import httpStatus from "http-status-codes";
 import { UserServices } from "./user.service";
-import AppError from "../../errorHelpers/AppError";
+import { catchAsync } from "../../utils/catchAsync";
+import { sendResponse } from "../../utils/sendResponse";
+import statusCode from "http-status-codes";
 
-const createUser = async (req: Request, res: Response,next:NextFunction) => {
-  try {
+const createUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
     const user = await UserServices.createUser(req.body);
 
-    res.status(httpStatus.CREATED).json({
-      message: "user created successfully",
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "User created successfully",
       data: user,
     });
-  } catch (error: any) {
-    // console.log(error);
-    // res.status(httpStatus.BAD_REQUEST).json({
-    //   message: "Something went wrong",
-    //   error,
-    // });
-    next(error)
   }
-};
+);
 
-export const UserControllers = { createUser };
+const getAllUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
+    const result = await UserServices.getAllUser();
+
+    sendResponse(res, {
+      success: true,
+      message: "All user data retrieved successfully",
+      statusCode: statusCode.OK,
+      data: result.data,
+      meta: result?.meta,
+    });
+  }
+);
+
+export const UserControllers = { createUser, getAllUser };
