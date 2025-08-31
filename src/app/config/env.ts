@@ -6,6 +6,10 @@ interface EnvVars {
   DB_URL: string;
   NODE_ENV: "development" | "production";
   BCRYPT_SALT_ROUND: string;
+  JWT_ACCESS_TOKEN_SECRET: string;
+  JWT_ACCESS_TOKEN_EXPIRES_IN: string;
+  JWT_REFRESH_TOKEN_SECRET: string;
+  JWT_REFRESH_TOKEN_EXPIRES_IN: string;
 }
 
 const loadEnvironmentVariables = (): EnvVars => {
@@ -14,6 +18,10 @@ const loadEnvironmentVariables = (): EnvVars => {
     "DB_URL",
     "NODE_ENV",
     "BCRYPT_SALT_ROUND",
+    "JWT_ACCESS_TOKEN_SECRET",
+    "JWT_ACCESS_TOKEN_EXPIRES_IN",
+    "JWT_REFRESH_TOKEN_SECRET",
+    "JWT_REFRESH_TOKEN_EXPIRES_IN",
   ];
 
   requiredVariables.forEach((key) => {
@@ -26,6 +34,12 @@ const loadEnvironmentVariables = (): EnvVars => {
     DB_URL: process.env.DB_URL as string,
     NODE_ENV: process.env.NODE_ENV as "development" | "production",
     BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND as string,
+    JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET as string,
+    JWT_ACCESS_TOKEN_EXPIRES_IN: process.env
+      .JWT_ACCESS_TOKEN_EXPIRES_IN as string,
+    JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET as string,
+    JWT_REFRESH_TOKEN_EXPIRES_IN: process.env
+      .JWT_REFRESH_TOKEN_EXPIRES_IN as string,
   };
 };
 export const envVars: EnvVars = loadEnvironmentVariables();
