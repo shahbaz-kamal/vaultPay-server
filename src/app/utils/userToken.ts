@@ -2,7 +2,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../modules/user/user.interface";
 import { generateToken } from "./jwt";
 import { envVars } from "../config/env";
-
+import jwt from "jsonwebtoken";
 export const createUserTokens = async (user: Partial<IUser>) => {
   const jwtPayload: JwtPayload = {
     userId: user._id,
@@ -21,4 +21,9 @@ export const createUserTokens = async (user: Partial<IUser>) => {
   );
 
   return { accessToken, refreshToken };
+};
+
+export const verifyToken = (accessToken: string, secret: string) => {
+  const verifiedToken = jwt.verify(accessToken, secret);
+  return verifiedToken;
 };

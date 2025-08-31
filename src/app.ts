@@ -30,4 +30,4 @@ app.get("/", (req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 // not found route
-app.use(notFoundRoute)
+app.use(notFoundRoute);
