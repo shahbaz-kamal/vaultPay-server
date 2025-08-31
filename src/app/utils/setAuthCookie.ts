@@ -1,0 +1,20 @@
+import { Response } from "express";
+
+interface TokenInfo {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {
+  if (tokenInfo.accessToken)
+    res.cookie("accessToken", tokenInfo.accessToken, {
+      httpOnly: true,
+      secure: false,
+    });
+
+  if (tokenInfo.refreshToken)
+    res.cookie("refreshToken", tokenInfo.refreshToken, {
+      httpOnly: true,
+      secure: false,
+    });
+};
