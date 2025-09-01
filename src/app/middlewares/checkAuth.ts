@@ -6,7 +6,8 @@ import { envVars } from "../config/env";
 import { User } from "../modules/user/user.model";
 import { IsActive } from "../modules/user/user.interface";
 import httpStatus from "http-status-codes";
-import { verifyToken } from "../utils/userToken";
+import { verifyToken } from "../utils/jwt";
+
 
 export const checkAuth =
   (...authRoles: string[]) =>

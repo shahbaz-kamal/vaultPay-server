@@ -4,6 +4,7 @@ import { AuthController } from "./auth.controller";
 const router = Router();
 
 router.post("/login", AuthController.credentialsLogin);
+router.post("/refresh-token", AuthController.getNewAccessToken);
 // router.post("/get-all-users",A)
 
 export const AuthRoutes = router;

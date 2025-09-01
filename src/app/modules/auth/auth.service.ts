@@ -3,7 +3,10 @@ import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import bryptJs from "bcryptjs";
-import { createUserTokens } from "../../utils/userToken";
+import {
+  createNewAccessTokenWithRefreshToken,
+  createUserTokens,
+} from "../../utils/userToken";
 
 const credentialsLogin = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
@@ -23,13 +26,21 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Incorrect password");
 
   const userTokens = await createUserTokens(isUserExist);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: pass, ...rests } = isUserExist.toObject();
 
   return {
     accessToken: userTokens.accessToken,
     refreshToken: userTokens.refreshToken,
+    user: { ...rests },
   };
 };
 
+const getNewAccessToken = async (refreshToken: string) => {
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(
+    refreshToken
+  );
+  return { accessToken: newAccessToken };
+};
 
-
-export const AuthServices = { credentialsLogin };
+export const AuthServices = { credentialsLogin, getNewAccessToken };
