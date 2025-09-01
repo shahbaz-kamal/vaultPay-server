@@ -5,13 +5,17 @@ import { AuthServices } from "./auth.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 
-import { setAuthCookie, TokenInfo } from "../../utils/setAuthCookie";
+import { setAuthCookie } from "../../utils/setAuthCookie";
 import AppError from "../../errorHelpers/AppError";
 import { createUserTokens } from "../../utils/userToken";
 import { envVars } from "../../config/env";
+import passport from "passport";
+
+
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const loginInfo = await AuthServices.credentialsLogin(req.body);
+    // const loginInfo = await AuthServices.credentialsLogin(req.body);
+    const loginInfo=passport.authenticate("local",async()=>{})(req,res,next)
 
     setAuthCookie(res, loginInfo);
     sendResponse(res, {

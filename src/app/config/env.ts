@@ -32,7 +32,7 @@ const loadEnvironmentVariables = (): EnvVars => {
     "SUPER_ADMIN_EMAIL",
     "SUPER_ADMIN_PASSWORD",
     "GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
     "GOOGLE_CALLBACK_URL",
     "FRONTEND_URL",
     "EXPRESS_SESSION_SECRET",

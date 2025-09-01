@@ -7,6 +7,49 @@ import {
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/user.interface";
+import { Strategy as LocalStrategy } from "passport-local";
+
+import bcryptJs from "bcryptJs";
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email: string, password: string, done) => {
+      try {
+        const isUserExist = await User.findOne({ email });
+
+        if (!isUserExist)
+          return done(null, false, {
+            message: `User having email:${email}, does not exist`,
+          });
+        const isGoogleAuthenticated = isUserExist.auths.some(
+          (providerObject) => providerObject.provider === "google"
+        );
+        if (isGoogleAuthenticated)
+          return done(null, false, {
+            message:
+              "You are authenticated with google . If you want to log in with credentials then please  login with google and set the password first",
+          });
+        const isPasswordMatched = await bcryptJs.compare(
+          password as string,
+          isUserExist.password as string
+        );
+        if (!isPasswordMatched)
+          return done(null, false, {
+            message: `Password Does not match`,
+          });
+
+        return done(null, isUserExist);
+      } catch (error) {
+        console.log(error);
+        done(error);
+      }
+    }
+  )
+);
 
 passport.use(
   new GoogleStrategy(
@@ -54,6 +97,6 @@ passport.deserializeUser(async (id: string, done: any) => {
     done(null, user);
   } catch (error) {
     console.log(error);
-    done(error)
+    done(error);
   }
 });
