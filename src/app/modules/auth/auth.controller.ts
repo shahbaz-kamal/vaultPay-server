@@ -50,4 +50,41 @@ const getNewAccessToken = catchAsync(
   }
 );
 
-export const AuthController = { credentialsLogin, getNewAccessToken };
+const logout = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "logged out",
+      data: null,
+    });
+  }
+);
+const resetPassword = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user;
+    const newPassword = req.body.newPassword;
+    const oldPassword = req.body.oldPassword;
+    await AuthServices.resetPassword(oldPassword, newPassword, decodedToken);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Password changed successfully ",
+      data: null,
+    });
+  }
+);
+
+export const AuthControllers = { credentialsLogin, getNewAccessToken,logout,resetPassword };
