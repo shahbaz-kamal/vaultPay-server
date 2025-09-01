@@ -2,7 +2,7 @@ import { Response } from "express";
 
 interface TokenInfo {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {

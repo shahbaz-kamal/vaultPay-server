@@ -1,8 +1,12 @@
 import { JwtPayload } from "jsonwebtoken";
-import { IUser } from "../modules/user/user.interface";
-import { generateToken } from "./jwt";
+import { IsActive, IUser } from "../modules/user/user.interface";
+import { generateToken, verifyToken } from "./jwt";
 import { envVars } from "../config/env";
-import jwt from "jsonwebtoken";
+
+import { User } from "../modules/user/user.model";
+import AppError from "../errorHelpers/AppError";
+import httpStatus from "http-status-codes";
+
 export const createUserTokens = async (user: Partial<IUser>) => {
   const jwtPayload: JwtPayload = {
     userId: user._id,
@@ -16,14 +20,45 @@ export const createUserTokens = async (user: Partial<IUser>) => {
   );
   const refreshToken = generateToken(
     jwtPayload,
-    envVars.JWT_ACCESS_TOKEN_SECRET,
-    envVars.JWT_ACCESS_TOKEN_EXPIRES_IN
+    envVars.JWT_REFRESH_TOKEN_SECRET,
+    envVars.JWT_REFRESH_TOKEN_EXPIRES_IN
   );
 
   return { accessToken, refreshToken };
 };
 
-export const verifyToken = (accessToken: string, secret: string) => {
-  const verifiedToken = jwt.verify(accessToken, secret);
-  return verifiedToken;
+export const createNewAccessTokenWithRefreshToken = async (
+  refreshToken: string
+) => {
+  const verifiedRefreshToken = verifyToken(
+    refreshToken,
+    envVars.JWT_REFRESH_TOKEN_SECRET
+  ) as JwtPayload;
+  const isUserExist = (await User.findOne({
+    email: verifiedRefreshToken.email,
+  })) as IUser | null;
+  if (!isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User dosent exist");
+  }
+  if (isUserExist.isActive === IsActive.BLOCKED) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `User is ${isUserExist.isActive}`
+    );
+  }
+  if (!isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
+  }
+
+  const jwtPayload = {
+    userId: isUserExist._id,
+    email: isUserExist.email,
+    role: isUserExist.role,
+  };
+  const accessToken = generateToken(
+    jwtPayload,
+    envVars.JWT_ACCESS_TOKEN_SECRET as string,
+    envVars.JWT_ACCESS_TOKEN_EXPIRES_IN as string
+  );
+  return accessToken;
 };
