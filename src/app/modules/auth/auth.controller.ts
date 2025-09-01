@@ -5,8 +5,10 @@ import { AuthServices } from "./auth.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 
-import { setAuthCookie } from "../../utils/setAuthCookie";
+import { setAuthCookie, TokenInfo } from "../../utils/setAuthCookie";
 import AppError from "../../errorHelpers/AppError";
+import { createUserTokens } from "../../utils/userToken";
+import { envVars } from "../../config/env";
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const loginInfo = await AuthServices.credentialsLogin(req.body);
@@ -86,5 +88,32 @@ const resetPassword = catchAsync(
     });
   }
 );
+const googleCallbackController = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    let redirectTo = req.query.state ? (req.query.state as string) : "";
+    if (redirectTo.startsWith("/")) {
+      redirectTo = redirectTo?.slice(1);
+    }
+    const user = req.user;
+    console.log("Google user", user);
+    if (!user) throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+    const tokenInfo = await createUserTokens(user);
+    setAuthCookie(res, tokenInfo);
+    res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
+    // sendResponse(res, {
+    //   success: true,
+    //   statusCode: httpStatus.CREATED,
+    //   message: "Password changed successfully ",
+    //   data: null,
+    // });
+  }
+);
 
-export const AuthControllers = { credentialsLogin, getNewAccessToken,logout,resetPassword };
+export const AuthControllers = {
+  credentialsLogin,
+  getNewAccessToken,
+  logout,
+  resetPassword,
+  googleCallbackController,
+};
