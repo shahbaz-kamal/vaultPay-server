@@ -40,7 +40,7 @@ const loadEnvironmentVariables = (): EnvVars => {
 
   requiredVariables.forEach((key) => {
     if (!process.env[key]) {
-      throw new Error(`Missing required environment variable: ${key}`);
+      throw new Error(`Missing required environments variable: ${key}`);
     }
   });
   return {
