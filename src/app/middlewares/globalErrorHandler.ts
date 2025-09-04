@@ -3,6 +3,12 @@
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
+import mongoose from "mongoose";
+import { TErrorSources } from "../interfaces/error.types";
+import { handleDuplicateError } from "../helpers/handleDuplicateError";
+import { handleCastError } from "../helpers/handleCastError";
+import { handleZodError } from "../helpers/handleZodError";
+import { handleValidationError } from "../helpers/handleValidationError";
 
 export const globalErrorHandler = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,31 +17,37 @@ export const globalErrorHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  // console.log("From error===>", error);
+  if (envVars.NODE_ENV === "development") {
+    console.log("From error===>", error);
+  }
   let statusCode = 500;
   let message = `Something went Wrong!!`;
-  const errorSource: any = [];
+  let errorSource: TErrorSources[] = [];
   //duplicate error
   if (error.code === 11000) {
-    statusCode = 400;
-    const matchedArray = error.message.match(/"([^"]*)"/);
-    message = `${matchedArray[0]} already exists`;
+    const simplifiedError = handleDuplicateError(error);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
   }
   //cast error
   else if (error.name === "castError") {
-    statusCode = 400;
-    message = "Validation Error";
+    const simplifiedError = handleCastError(error);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
   }
-  //validateionError
+  //zod error
+  else if (error.name === "ZodError") {
+    const simplifiedError = handleZodError(error);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSource = simplifiedError.errorSource as TErrorSources[];
+  }
+  //mongoose validateionError
   else if (error.name === "ValidationError") {
-    statusCode = 400;
-    const errors = Object.values(error.errors);
-
-    errors.forEach((errorObject: any) =>
-      errorSource.push({ path: errorObject.path, message: errorObject.message })
-    );
-    console.log("the Array\n", errorSource);
-    message = error.message;
+    const simplifiedError = handleValidationError(error);
+    message = simplifiedError.message;
+    errorSource = simplifiedError.errorSources as TErrorSources[];
+    statusCode = simplifiedError.statusCode;
   } else if (error instanceof AppError) {
     statusCode = error.statusCode;
     message = error.message;
@@ -48,7 +60,7 @@ export const globalErrorHandler = async (
     success: false,
     message,
     errorSource,
-    // error,
+    error: envVars.NODE_ENV === "development" ? error : null,
     stack: envVars.NODE_ENV === "development" ? error.stack : null,
   });
 };

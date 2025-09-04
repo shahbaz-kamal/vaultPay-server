@@ -9,7 +9,7 @@ const router = Router();
 
 router.post(
   "/register",
-  // validateRequest(createUserZodSchema),
+  validateRequest(createUserZodSchema),
   UserControllers.createUser
 );
 router.get(
@@ -20,7 +20,7 @@ router.get(
 
 router.patch(
   "/:id",
-   validateRequest(updateUserZodSchema),
+  validateRequest(updateUserZodSchema),
   checkAuth(...Object.values(Role)),
   UserControllers.updateUser
 );
