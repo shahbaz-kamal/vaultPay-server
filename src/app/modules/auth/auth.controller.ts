@@ -11,19 +11,28 @@ import { createUserTokens } from "../../utils/userToken";
 import { envVars } from "../../config/env";
 import passport from "passport";
 
-
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // const loginInfo = await AuthServices.credentialsLogin(req.body);
-    const loginInfo=passport.authenticate("local",async()=>{})(req,res,next)
+    passport.authenticate("local", async (error: any, user: any, info) => {
+      if (error) return next(new AppError(401, error));
 
-    setAuthCookie(res, loginInfo);
-    sendResponse(res, {
-      success: true,
-      message: "User logged in successfully",
-      statusCode: httpStatus.CREATED,
-      data: loginInfo,
-    });
+      if (!user) return next(new AppError(401, info?.message));
+
+      const userTokens = await createUserTokens(user);
+      delete user.toObject().password;
+      setAuthCookie(res, userTokens);
+      sendResponse(res, {
+        success: true,
+        message: "User logged in successfully",
+        statusCode: httpStatus.CREATED,
+        data: {
+          accessToken: userTokens.accessToken,
+          refreshToken: userTokens.refreshToken,
+          user,
+        },
+      });
+    })(req, res, next);
   }
 );
 

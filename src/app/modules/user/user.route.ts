@@ -19,10 +19,10 @@ router.get(
 );
 
 router.patch(
-    "/:id",
-    validateRequest(updateUserZodSchema),
-    checkAuth(...Object.values(Role)),
-    UserControllers.updateUser
-  );
+  "/:id",
+  validateRequest(updateUserZodSchema),
+  checkAuth(...Object.values(Role)),
+  UserControllers.updateUser
+);
 
 export const UserRoutes = router;

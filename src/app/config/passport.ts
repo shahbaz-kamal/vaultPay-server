@@ -28,7 +28,7 @@ passport.use(
         const isGoogleAuthenticated = isUserExist.auths.some(
           (providerObject) => providerObject.provider === "google"
         );
-        if (isGoogleAuthenticated)
+        if (isGoogleAuthenticated && !isUserExist.password)
           return done(null, false, {
             message:
               "You are authenticated with google . If you want to log in with credentials then please  login with google and set the password first",
