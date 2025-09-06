@@ -1,7 +1,9 @@
+import { IsActive } from './../user/user.interface';
 import { Types } from "mongoose";
 
 export interface IWallet {
   _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  balance: number;
+  user: Types.ObjectId;
+  balance?: number;
+  IsActive?:IsActive
 }

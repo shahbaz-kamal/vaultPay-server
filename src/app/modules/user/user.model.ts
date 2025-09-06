@@ -1,5 +1,11 @@
 import { model, Schema } from "mongoose";
-import { IAuthProvider, IsActive, IUser, Role } from "./user.interface";
+import {
+  AgentRequest,
+  IAuthProvider,
+  IsActive,
+  IUser,
+  Role,
+} from "./user.interface";
 import { boolean } from "zod";
 
 const authProviderSchema = new Schema<IAuthProvider>(
@@ -9,7 +15,14 @@ const authProviderSchema = new Schema<IAuthProvider>(
   },
   { _id: false, versionKey: false }
 );
-
+const agentRequestSchema = new Schema<AgentRequest>(
+  {
+    isInitiatedByUser: { type: Boolean, default: false },
+    isInitiatedByAdmin: { type: Boolean, default: false },
+    isCompleted: { type: Boolean, default: false },
+  },
+  { _id: false, versionKey: false }
+);
 const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
@@ -32,6 +45,7 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: { type: boolean, default: false },
     auths: { type: [authProviderSchema], required: true },
+    agentRequest: { type: agentRequestSchema, default: {} },
   },
   { timestamps: true, versionKey: false }
 );
