@@ -5,16 +5,24 @@ import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
+import { WalletServices } from "../wallet/wallet.service";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
     const user = await UserServices.createUser(req.body);
-
+    let message = "User created successfully";
+    const newWallet = {
+      user: user._id,
+    };
+    const wallet = await WalletServices.createWallet(newWallet);
+    if (wallet && wallet._id) {
+      message = "User and wallet created successfully";
+    }
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "User created successfully",
+      message,
       data: user,
     });
   }

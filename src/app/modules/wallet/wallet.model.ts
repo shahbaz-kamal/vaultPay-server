@@ -1,6 +1,15 @@
-import { Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 import { IWallet } from "./wallet.interface";
 
-export const walletSchema = new Schema<IWallet>({
-  balance: { type: Number, required: true },
-});
+const walletSchema = new Schema<IWallet>(
+  {
+    user: { type: Schema.Types.ObjectId, required: true },
+    balance: { type: Number, default: 50 },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
+
+export const Wallet = model<IWallet>("Wallet", walletSchema);
