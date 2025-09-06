@@ -1,10 +1,17 @@
 import { model, Schema } from "mongoose";
 import { IWallet } from "./wallet.interface";
+import { IsActive } from "../user/user.interface";
 
 const walletSchema = new Schema<IWallet>(
   {
     user: { type: Schema.Types.ObjectId, required: true },
     balance: { type: Number, default: 50 },
+    IsActive: {
+      type: String,
+      required: true,
+      enum: Object.values(IsActive),
+      default: IsActive.ACTIVE,
+    },
   },
   {
     timestamps: true,

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import { IAuthProvider, IUser, Role } from "./user.interface";
+import { AgentRequest, IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import bcryptJs from "bcryptJs";
@@ -66,6 +67,60 @@ const updateUser = async (
       payload.password,
       envVars.BCRYPT_SALT_ROUND
     );
+    // if (payload.agentRequest) {
+    //   if (
+    //     decodedToken.Role === Role.USER &&
+    //     decodedToken.email !== isUserExist.email
+    //   )
+    //     throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+    //   if (
+    //     decodedToken.Role === Role.USER &&
+    //     (payload.agentRequest.isCompleted ||
+    //       payload.agentRequest.isInitiatedByAdmin)
+    //   ) {
+    //     throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+    //   }
+    //   payload = {
+    //     ...payload,
+    //     "agentRequest.isInitiatedByUser":
+    //       payload.agentRequest.isInitiatedByUser,
+    //   } as Partial<IUser>;
+
+    //   delete payload.agentRequest;
+    // }
+  }
+  if (payload.agentRequest) {
+    if (decodedToken.role === Role.USER) {
+      if (
+        payload.agentRequest.isCompleted !== undefined ||
+        payload.agentRequest.isInitiatedByAdmin !== undefined
+      ) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+      }
+
+      // ✅ Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByUser":
+          payload.agentRequest.isInitiatedByUser,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
+    if (
+      decodedToken.role === Role.ADMIN ||
+      decodedToken.role === Role.SUPER_ADMIN
+    ) {
+      // ✅ Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByAdmin":
+          payload.agentRequest?.isInitiatedByAdmin,
+        "agentRequest.isCompleted": payload.agentRequest?.isCompleted,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
   }
 
   const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {

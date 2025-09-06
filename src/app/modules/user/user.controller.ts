@@ -6,6 +6,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { WalletServices } from "../wallet/wallet.service";
+import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +48,7 @@ const updateUser = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
-    const verifiedToken = req.user;
+    const verifiedToken = req.user as JwtPayload;
     const payload = req.body;
     const user = await UserServices.updateUser(userId, payload, verifiedToken);
     sendResponse(res, {

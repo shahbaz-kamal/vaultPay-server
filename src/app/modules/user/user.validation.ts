@@ -24,6 +24,7 @@ export const createUserZodSchema = z.object({
       "Invalid Bangladeshi phone number format"
     )
     .optional(),
+
   profilePhoto: z.string("Photo must be string").optional(),
   address: z
     .string("Address must be string")
@@ -63,4 +64,15 @@ export const updateUserZodSchema = z.object({
   isActive: z.enum(Object.values(IsActive) as [string]).optional(),
   isDeleted: z.boolean("isDeleted Must be true or false.").optional(),
   isVerified: z.boolean("isVerified Must be true or false.").optional(),
+  agentRequest: z
+    .object({
+      isInitiatedByUser: z
+        .boolean("isInitiatedByUser must be boolean")
+        .optional(),
+      isInitiatedByAdmin: z
+        .boolean("isInitiatedByAdmin must be boolean")
+        .optional(),
+      isCompleted: z.boolean("isCompleted must be boolean").optional(),
+    })
+    .optional(),
 });
