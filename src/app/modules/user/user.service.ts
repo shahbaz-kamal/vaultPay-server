@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import { IAuthProvider, IUser, Role } from "./user.interface";
+import {
+  AgentRequestStatus,
+  IAuthProvider,
+  IUser,
+  Role,
+} from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import bcryptJs from "bcryptJs";
@@ -27,15 +32,25 @@ const createUser = async (payload: Partial<IUser>) => {
     providerId: email as string,
   };
 
-  const user = await User.create({
-    email,
-    password: hashedPassword,
-    auths: [authProvider],
-    ...rest,
-  });
-  const wallet = await Wallet.create({
-    user: user._id,
-  });
+  const user = await User.create(
+    [
+      {
+        email,
+        password: hashedPassword,
+        auths: [authProvider],
+        ...rest,
+      },
+    ],
+    { session }
+  );
+  const wallet = await Wallet.create(
+    [
+      {
+        user: user[0]._id,
+      },
+    ],
+    { session }
+  );
   await session.commitTransaction();
   session.endSession();
   return { user, wallet };
@@ -76,39 +91,21 @@ const updateUser = async (
       envVars.BCRYPT_SALT_ROUND
     );
   }
-  if (payload.agentRequest) {
-    if (decodedToken.role === Role.USER) {
-      if (
-        payload.agentRequest.isCompleted !== undefined ||
-        payload.agentRequest.isInitiatedByAdmin !== undefined
-      ) {
-        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
-      }
+  // check if the user is updating their own profile
+  const isSelfUpdate = decodedToken.userId === userId;
+  const requesterRole = decodedToken.role;
 
-      //  Allow only isInitiatedByUser update
-      payload = {
-        ...(payload as any), // loosen type
-        "agentRequest.isInitiatedByUser":
-          payload.agentRequest.isInitiatedByUser,
-      } as any;
-
-      delete (payload as any).agentRequest;
-    }
+  if (payload.agentRequestStatus) {
     if (
-      decodedToken.role === Role.ADMIN ||
-      decodedToken.role === Role.SUPER_ADMIN
-    ) {
-      // ✅ Allow only isInitiatedByUser update
-      payload = {
-        ...(payload as any), // loosen type
-        "agentRequest.isInitiatedByAdmin":
-          payload.agentRequest?.isInitiatedByAdmin,
-        "agentRequest.isCompleted": payload.agentRequest?.isCompleted,
-      } as any;
-
-      delete (payload as any).agentRequest;
-    }
+      payload.agentRequestStatus !== AgentRequestStatus.PENDING &&
+      isSelfUpdate &&
+      requesterRole === Role.USER
+    )
+      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
   }
+
+  if (payload.agentApprovedAt && requesterRole === Role.USER)
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
 
   const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
     new: true,

@@ -35,10 +35,10 @@ export const seedSuperAdmin = async () => {
       isVerified: true,
       auths: [authProvider],
     };
-    const superAdmin = await User.create(payload);
-    const superWallet = await Wallet.create({
-      user: superAdmin._id,
-    });
+    const userDoc = new User(payload);
+    const superAdmin = await userDoc.save({ session });
+    const superWallet = await Wallet.create([{ user: superAdmin._id }], { session });
+
     console.log(`SuperAdmin Created successfully with data \n
       super Admin: ${superAdmin} \n
       super wallet: ${superWallet}`);

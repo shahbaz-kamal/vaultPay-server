@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 import {
-  AgentRequest,
+  AgentRequestStatus,
   IAuthProvider,
   IsActive,
   IUser,
@@ -15,14 +15,7 @@ const authProviderSchema = new Schema<IAuthProvider>(
   },
   { _id: false, versionKey: false }
 );
-const agentRequestSchema = new Schema<AgentRequest>(
-  {
-    isInitiatedByUser: { type: Boolean, default: false },
-    isInitiatedByAdmin: { type: Boolean, default: false },
-    isCompleted: { type: Boolean, default: false },
-  },
-  { _id: false, versionKey: false }
-);
+
 const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
@@ -43,9 +36,15 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(IsActive),
       default: IsActive.ACTIVE,
     },
-    isVerified: { type: boolean, default: false },
+    isVerified: { type: Boolean, default: true },
     auths: { type: [authProviderSchema], required: true },
-    agentRequest: { type: agentRequestSchema, default: {} },
+    agentRequestStatus: {
+      type: String,
+      enum: Object.values(AgentRequestStatus),
+      default: AgentRequestStatus.NONE,
+    },
+    agentRequestedAt: { type: Date, default: null },
+    agentApprovedAt: { type: Date, default: null },
   },
   { timestamps: true, versionKey: false }
 );

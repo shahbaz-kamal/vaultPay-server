@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import passport from "passport";
 import {
   Strategy as GoogleStrategy,
@@ -10,6 +11,7 @@ import { Role } from "../modules/user/user.interface";
 import { Strategy as LocalStrategy } from "passport-local";
 
 import bcryptJs from "bcryptJs";
+import { Wallet } from "../modules/wallet/wallet.model";
 
 passport.use(
   new LocalStrategy(
@@ -64,23 +66,43 @@ passport.use(
       profile: Profile,
       done: VerifyCallback
     ) => {
+      const session = await User.startSession();
+      session.startTransaction();
       try {
         const email = profile.emails?.[0].value;
-        if (!email) done(null, false, { message: "No Email Found" });
-        let user = await User.findOne({ email });
-        if (!user) {
-          user = await User.create({
-            name: profile.displayName,
-            email,
-            profilePicture: profile.photos?.[0].value,
-            role: Role.USER,
-            isVerified: true,
-            auths: [{ provider: "google", providerId: profile.id }],
-          });
+        if (!email) {
+          await session.abortTransaction();
+          session.endSession();
+          return done(null, false, { message: "No Email Found" });
         }
+        let user = await User.findOne({ email }).session(session);
+
+        if (!user) {
+          const newUser = await User.create(
+            [
+              {
+                name: profile.displayName,
+                email,
+                profilePicture: profile.photos?.[0].value,
+                role: Role.USER,
+                isVerified: true,
+                auths: [{ provider: "google", providerId: profile.id }],
+              },
+            ],
+            { session }
+          );
+          user = newUser[0];
+          // await newUser.save({ session });
+          await Wallet.create([{ user: user._id }], { session });
+        }
+        await session.commitTransaction();
+        session.endSession();
         return done(null, user);
       } catch (error) {
         console.log("Google strategy error", error);
+        await session.abortTransaction();
+        session.endSession();
+
         return done(error);
       }
     }

@@ -1,5 +1,5 @@
 import z from "zod";
-import { IsActive, Role } from "./user.interface";
+import { AgentRequestStatus, IsActive, Role } from "./user.interface";
 
 export const createUserZodSchema = z.object({
   name: z
@@ -64,15 +64,9 @@ export const updateUserZodSchema = z.object({
   isActive: z.enum(Object.values(IsActive) as [string]).optional(),
   isDeleted: z.boolean("isDeleted Must be true or false.").optional(),
   isVerified: z.boolean("isVerified Must be true or false.").optional(),
-  agentRequest: z
-    .object({
-      isInitiatedByUser: z
-        .boolean("isInitiatedByUser must be boolean")
-        .optional(),
-      isInitiatedByAdmin: z
-        .boolean("isInitiatedByAdmin must be boolean")
-        .optional(),
-      isCompleted: z.boolean("isCompleted must be boolean").optional(),
-    })
+  agentRequestStatus: z
+    .enum(Object.values(AgentRequestStatus) as [string])
     .optional(),
+  agentRequestedAt: z.date().optional(),
+  agentApprovedAt: z.date().optional(),
 });
