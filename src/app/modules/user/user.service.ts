@@ -38,7 +38,7 @@ const createUser = async (payload: Partial<IUser>) => {
   });
   await session.commitTransaction();
   session.endSession();
-  return user;
+  return { user, wallet };
 };
 
 const getAllUser = async () => {
