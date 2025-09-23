@@ -67,27 +67,6 @@ const updateUser = async (
       payload.password,
       envVars.BCRYPT_SALT_ROUND
     );
-    // if (payload.agentRequest) {
-    //   if (
-    //     decodedToken.Role === Role.USER &&
-    //     decodedToken.email !== isUserExist.email
-    //   )
-    //     throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
-    //   if (
-    //     decodedToken.Role === Role.USER &&
-    //     (payload.agentRequest.isCompleted ||
-    //       payload.agentRequest.isInitiatedByAdmin)
-    //   ) {
-    //     throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
-    //   }
-    //   payload = {
-    //     ...payload,
-    //     "agentRequest.isInitiatedByUser":
-    //       payload.agentRequest.isInitiatedByUser,
-    //   } as Partial<IUser>;
-
-    //   delete payload.agentRequest;
-    // }
   }
   if (payload.agentRequest) {
     if (decodedToken.role === Role.USER) {
@@ -98,7 +77,7 @@ const updateUser = async (
         throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
       }
 
-      // ✅ Allow only isInitiatedByUser update
+      //  Allow only isInitiatedByUser update
       payload = {
         ...(payload as any), // loosen type
         "agentRequest.isInitiatedByUser":
