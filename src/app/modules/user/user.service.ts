@@ -27,15 +27,21 @@ const createUser = async (payload: Partial<IUser>) => {
     providerId: email as string,
   };
 
-  const user = await User.create({
-    email,
-    password: hashedPassword,
-    auths: [authProvider],
-    ...rest,
-  });
-  const wallet = await Wallet.create({
-    user: user._id,
-  });
+  const user = await User.create(
+    {
+      email,
+      password: hashedPassword,
+      auths: [authProvider],
+      ...rest,
+    },
+    { session }
+  );
+  const wallet = await Wallet.create(
+    {
+      user: user[0]._id,
+    },
+    { session }
+  );
   await session.commitTransaction();
   session.endSession();
   return { user, wallet };
