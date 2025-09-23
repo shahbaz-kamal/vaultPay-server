@@ -3,7 +3,7 @@
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
-import mongoose from "mongoose";
+
 import { TErrorSources } from "../interfaces/error.types";
 import { handleDuplicateError } from "../helpers/handleDuplicateError";
 import { handleCastError } from "../helpers/handleCastError";

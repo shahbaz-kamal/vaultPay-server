@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
 import { IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
@@ -5,14 +6,17 @@ import httpStatus from "http-status-codes";
 import bcryptJs from "bcryptJs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import { Wallet } from "../wallet/wallet.model";
 
 const createUser = async (payload: Partial<IUser>) => {
+  const session = await User.startSession();
+  session.startTransaction();
   const { email, password, ...rest } = payload;
 
   const isUserExist = await User.findOne({ email });
-  // if (isUserExist) {
-  //   throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
-  // }
+  if (isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+  }
   const hashedPassword = await bcryptJs.hash(
     password as string,
     Number(envVars.BCRYPT_SALT_ROUND)
@@ -29,6 +33,11 @@ const createUser = async (payload: Partial<IUser>) => {
     auths: [authProvider],
     ...rest,
   });
+  const wallet = await Wallet.create({
+    user: user._id,
+  });
+  await session.commitTransaction();
+  session.endSession();
   return user;
 };
 
@@ -66,6 +75,39 @@ const updateUser = async (
       payload.password,
       envVars.BCRYPT_SALT_ROUND
     );
+  }
+  if (payload.agentRequest) {
+    if (decodedToken.role === Role.USER) {
+      if (
+        payload.agentRequest.isCompleted !== undefined ||
+        payload.agentRequest.isInitiatedByAdmin !== undefined
+      ) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+      }
+
+      //  Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByUser":
+          payload.agentRequest.isInitiatedByUser,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
+    if (
+      decodedToken.role === Role.ADMIN ||
+      decodedToken.role === Role.SUPER_ADMIN
+    ) {
+      // ✅ Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByAdmin":
+          payload.agentRequest?.isInitiatedByAdmin,
+        "agentRequest.isCompleted": payload.agentRequest?.isCompleted,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
   }
 
   const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
