@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import { AgentRequest, IAuthProvider, IUser, Role } from "./user.interface";
+import { IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import bcryptJs from "bcryptJs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import { Wallet } from "../wallet/wallet.model";
 
 const createUser = async (payload: Partial<IUser>) => {
+  const session = await User.startSession();
+  session.startTransaction();
   const { email, password, ...rest } = payload;
 
   const isUserExist = await User.findOne({ email });
-  // if (isUserExist) {
-  //   throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
-  // }
+  if (isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+  }
   const hashedPassword = await bcryptJs.hash(
     password as string,
     Number(envVars.BCRYPT_SALT_ROUND)
@@ -30,6 +33,11 @@ const createUser = async (payload: Partial<IUser>) => {
     auths: [authProvider],
     ...rest,
   });
+  const wallet = await Wallet.create({
+    user: user._id,
+  });
+  await session.commitTransaction();
+  session.endSession();
   return user;
 };
 
