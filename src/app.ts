@@ -1,18 +1,31 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+import "./app/config/passport"
 import { logger } from "./app/middlewares/logger";
 import { router } from "./app/routes";
-import { envVars } from "./app/config/env";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFoundRoute } from "./app/middlewares/notFoundError";
+import passport from "passport";
+import expressSession from "express-session";
+import { envVars } from "./app/config/env";
 
 export const app = express();
 
 //required constatnts for middlewares
 
 // middlewares
+app.use(
+  expressSession({
+    secret: envVars.EXPRESS_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors());
@@ -30,4 +43,4 @@ app.get("/", (req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 // not found route
-app.use(notFoundRoute)
+app.use(notFoundRoute);

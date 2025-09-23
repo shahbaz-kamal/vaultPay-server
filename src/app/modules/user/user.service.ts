@@ -1,11 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import { IAuthProvider, IUser } from "./user.interface";
+import { IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
-import bcryptJs from "bcryptjs";
+import bcryptJs from "bcryptJs";
 import { envVars } from "../../config/env";
+import { JwtPayload } from "jsonwebtoken";
+import { Wallet } from "../wallet/wallet.model";
 
 const createUser = async (payload: Partial<IUser>) => {
+  const session = await User.startSession();
+  session.startTransaction();
   const { email, password, ...rest } = payload;
 
   const isUserExist = await User.findOne({ email });
@@ -28,6 +33,11 @@ const createUser = async (payload: Partial<IUser>) => {
     auths: [authProvider],
     ...rest,
   });
+  const wallet = await Wallet.create({
+    user: user._id,
+  });
+  await session.commitTransaction();
+  session.endSession();
   return user;
 };
 
@@ -36,5 +46,75 @@ const getAllUser = async () => {
   const totalUser = await User.countDocuments();
   return { data: user, meta: { totalUser } };
 };
+const updateUser = async (
+  userId: string,
+  payload: Partial<IUser>,
+  decodedToken: JwtPayload
+) => {
+  const isUserExist = await User.findById(userId);
 
-export const UserServices = { createUser, getAllUser };
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+
+  if (payload.role) {
+    if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT)
+      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+
+    if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN)
+      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+
+    if (payload.isActive || payload.isDeleted || payload.isVerified) {
+      if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+      }
+    }
+  }
+  if (payload.password) {
+    payload.password = await bcryptJs.hash(
+      payload.password,
+      envVars.BCRYPT_SALT_ROUND
+    );
+  }
+  if (payload.agentRequest) {
+    if (decodedToken.role === Role.USER) {
+      if (
+        payload.agentRequest.isCompleted !== undefined ||
+        payload.agentRequest.isInitiatedByAdmin !== undefined
+      ) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+      }
+
+      //  Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByUser":
+          payload.agentRequest.isInitiatedByUser,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
+    if (
+      decodedToken.role === Role.ADMIN ||
+      decodedToken.role === Role.SUPER_ADMIN
+    ) {
+      // ✅ Allow only isInitiatedByUser update
+      payload = {
+        ...(payload as any), // loosen type
+        "agentRequest.isInitiatedByAdmin":
+          payload.agentRequest?.isInitiatedByAdmin,
+        "agentRequest.isCompleted": payload.agentRequest?.isCompleted,
+      } as any;
+
+      delete (payload as any).agentRequest;
+    }
+  }
+
+  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+  return newUpdatedUser;
+};
+
+export const UserServices = { createUser, getAllUser, updateUser };
