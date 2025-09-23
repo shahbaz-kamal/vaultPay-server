@@ -12,14 +12,14 @@ import { JwtPayload } from "jsonwebtoken";
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
-    const { user, wallet } = await UserServices.createUser(req.body);
+    const { user } = await UserServices.createUser(req.body);
     const message = "User and wallet created successfully";
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
       message,
-      data: { user, wallet },
+      data: user,
     });
   }
 );

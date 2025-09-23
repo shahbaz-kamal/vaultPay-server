@@ -1,6 +1,4 @@
-import { AgentRequest } from "./user.interface";
 import { Types } from "mongoose";
-import { boolean } from "zod";
 
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
@@ -17,10 +15,12 @@ export enum IsActive {
   INACTIVE = "INACTIVE",
   BLOCKED = "BLOCKED",
 }
-export interface AgentRequest {
-  isInitiatedByUser?: boolean;
-  isInitiatedByAdmin?: boolean;
-  isCompleted?: boolean;
+
+export enum AgentRequestStatus {
+  NONE = "NONE",
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 export interface IUser {
   _id?: Types.ObjectId;
@@ -35,7 +35,7 @@ export interface IUser {
   isActive?: IsActive;
   isVerified?: boolean;
   auths: IAuthProvider[];
-  agentRequest?: AgentRequest;
-  bookings?: Types.ObjectId[];
-  guides?: Types.ObjectId[];
+  agentRequestStatus?: AgentRequestStatus;
+  agentRequestedAt?: Date | null;
+  agentApprovedAt?: Date | null;
 }
