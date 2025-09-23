@@ -70,20 +70,30 @@ passport.use(
       session.startTransaction();
       try {
         const email = profile.emails?.[0].value;
-        if (!email) done(null, false, { message: "No Email Found" });
+        if (!email) {
+          await session.abortTransaction();
+          session.endSession();
+          return done(null, false, { message: "No Email Found" });
+        }
         let user = await User.findOne({ email }).session(session);
 
         if (!user) {
-          user = await User.create({
-            name: profile.displayName,
-            email,
-            profilePicture: profile.photos?.[0].value,
-            role: Role.USER,
-            isVerified: true,
-            auths: [{ provider: "google", providerId: profile.id }],
-          });
-          await user.save({ session });
-          const wallet = await Wallet.create({ user: user._id }, { session });
+          const newUser = await User.create(
+            [
+              {
+                name: profile.displayName,
+                email,
+                profilePicture: profile.photos?.[0].value,
+                role: Role.USER,
+                isVerified: true,
+                auths: [{ provider: "google", providerId: profile.id }],
+              },
+            ],
+            { session }
+          );
+          user = newUser[0];
+          // await newUser.save({ session });
+          await Wallet.create([{ user: user._id }], { session });
         }
         await session.commitTransaction();
         session.endSession();
