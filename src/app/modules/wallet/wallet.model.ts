@@ -6,7 +6,7 @@ const walletSchema = new Schema<IWallet>(
   {
     user: { type: Schema.Types.ObjectId, required: true },
     balance: { type: Number, default: 50 },
-    IsActive: {
+    isActive: {
       type: String,
       required: true,
       enum: Object.values(IsActive),
