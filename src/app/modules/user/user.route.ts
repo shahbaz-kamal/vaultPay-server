@@ -13,7 +13,7 @@ router.post(
   UserControllers.createUser
 );
 router.get(
-  "/all-users",
+  "/users",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getAllUser
 );

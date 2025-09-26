@@ -6,7 +6,6 @@ import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
-import { WalletServices } from "../wallet/wallet.service";
 import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
@@ -27,11 +26,14 @@ const createUser = catchAsync(
 const getAllUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
-    const result = await UserServices.getAllUser();
+    const query = req.query;
+    const result = await UserServices.getAllUser(
+      query as Record<string, string>
+    );
 
     sendResponse(res, {
       success: true,
-      message: "All user data retrieved successfully",
+      message: "user data retrieved successfully",
       statusCode: statusCode.OK,
       data: result.data,
       meta: result?.meta,
