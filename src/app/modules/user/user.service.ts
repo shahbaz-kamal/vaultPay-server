@@ -12,6 +12,7 @@ import bcryptJs from "bcryptJs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
 import { Wallet } from "../wallet/wallet.model";
+import { excludedFields, searchableFields } from "../../constants";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();
@@ -56,11 +57,35 @@ const createUser = async (payload: Partial<IUser>) => {
   return { user, wallet };
 };
 
-const getAllUser = async () => {
-  const user = await User.find({});
-  const totalUser = await User.countDocuments();
-  return { data: user, meta: { totalUser } };
+const getAllUser = async (query: Record<string, string>) => {
+  const filter = query;
+  const searchTerm = query.searchTerm || "";
+  const sort = query.sort || "-createdAt";
+  const fields = query?.fields?.split(",").join(" ") || "";
+  const page = Number(query.page) || 1;
+  const limit = Number(query?.limit) || 10;
+
+  const skip = (page - 1) * limit;
+  for (const field of excludedFields) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete filter[field];
+  }
+
+  const searchQuery = {
+    $or: searchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: "i" },
+    })),
+  };
+  const user = await User.find(searchQuery)
+    .find(filter)
+    .sort(sort)
+    .select(fields)
+    .skip(skip)
+    .limit(limit);
+  const totalDocuments = await User.countDocuments();
+  return { data: user, meta: { totalDocuments } };
 };
+
 const updateUser = async (
   userId: string,
   payload: Partial<IUser>,
