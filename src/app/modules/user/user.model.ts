@@ -6,7 +6,6 @@ import {
   IUser,
   Role,
 } from "./user.interface";
-import { boolean } from "zod";
 
 const authProviderSchema = new Schema<IAuthProvider>(
   {

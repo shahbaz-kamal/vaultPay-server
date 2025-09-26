@@ -6,7 +6,7 @@ export enum TRANSACTION_TYPE {
   CASH_IN = "CASH_IN", ////agents to user
   CASH_OUT = "CASH_OUT", ////users to agent
 }
-export enum TRANSACTIO_STATUS {
+export enum TRANSACTION_STATUS {
   PENDING = "PENDING",
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
@@ -28,8 +28,9 @@ export interface ITransaction {
   amount: number;
   transactionFee?: number;
   commission?: number; // Agent commission
-  status: TRANSACTIO_STATUS;
-  description?: string;
+  status: TRANSACTION_STATUS;
+  notes?: string;
   createdAt: Date;
   completedAt?: Date;
+ 
 }
