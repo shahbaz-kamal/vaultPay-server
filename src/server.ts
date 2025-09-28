@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { app } from "./app";
 import { envVars } from "./app/config/env";
 import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
+import { seedSystemInformation } from "./app/utils/seedSystemInformation";
 
 let server: Server;
 
@@ -23,5 +24,6 @@ const startServer = async () => {
 
 (async () => {
   await startServer();
-  await seedSuperAdmin()
+  await seedSuperAdmin();
+  await seedSystemInformation();
 })();

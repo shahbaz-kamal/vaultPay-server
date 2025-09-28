@@ -1,5 +1,13 @@
 import { Types } from "mongoose";
 
+export interface TMeta {
+  totalDocuments?: number;
+  noOfMatchedDocuments?: number;
+  pageNumber?: number;
+  totalPage?: number;
+  limit?: number;
+}
+
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
