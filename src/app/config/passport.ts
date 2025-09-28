@@ -93,9 +93,12 @@ passport.use(
           );
           user = newUser[0];
           // await newUser.save({ session });
-          await Wallet.create([{ user: user._id }], { session });
+          const wallet=await Wallet.create([{ user: user._id }], { session });
+          user.wallet = wallet[0]._id;
+          await user.save({ session });
         }
         await session.commitTransaction();
+
         session.endSession();
         return done(null, user);
       } catch (error) {

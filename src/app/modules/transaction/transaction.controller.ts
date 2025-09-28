@@ -39,4 +39,4 @@ const cashOut = catchAsync(
     });
   }
 );
-export const TransactionController = { addMoney ,sendMoney,cashOut};
+export const TransactionController = { addMoney, sendMoney, cashOut };
