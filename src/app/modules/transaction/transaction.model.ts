@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import {
   ITransaction,
   TRANSACTION_STATUS,
@@ -6,24 +6,32 @@ import {
   TRANSACTION_TYPE,
 } from "./transaction.interface";
 
-
-const transactionSchema = new Schema<ITransaction>({
-  transactionId: { type: String, required: true },
-  type: { type: String, required: true, enum: Object.values(TRANSACTION_TYPE) },
-  source: {
-    type: String,
-    required: true,
-    enum: Object.values(TRANSACTION_SOURCE),
+const transactionSchema = new Schema<ITransaction>(
+  {
+    transactionId: { type: String, required: true },
+    type: {
+      type: String,
+      required: true,
+      enum: Object.values(TRANSACTION_TYPE),
+    },
+    source: {
+      type: String,
+      required: true,
+      enum: Object.values(TRANSACTION_SOURCE),
+    },
+    senderEmail: { type: String, default: null },
+    senderId: { type: mongoose.Types.ObjectId, default: null },
+    receiverEmail: { type: String, default: null },
+    receiverId: { type: mongoose.Types.ObjectId, default: null },
+    amount: { type: Number },
+    transactionFee: { type: Number },
+    agentCommission: { type: Number, default: null },
+    status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
+    notes: { type: String },
+    completedAt: { type: Date },
   },
-  from: { type: Schema.Types.ObjectId },
-  to: { type: Schema.Types.ObjectId },
-  amount: { type: Number },
-  transactionFee: { type: Number },
-  commission: { type: Number },
-  status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
-  notes: { type: String },
-  completedAt: { type: Date },
-});
+  { timestamps: true, versionKey: false }
+);
 
 export const Transaction = model<ITransaction>(
   "Transaction",

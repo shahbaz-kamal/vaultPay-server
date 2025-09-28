@@ -24,11 +24,13 @@ export interface ITransaction {
   transactionId: string; // Unique reference (e.g., "TXN123456")
   type: TRANSACTION_TYPE;
   source: TRANSACTION_SOURCE; // Who initiated the transaction
-  from?: Types.ObjectId;
-  to?: Types.ObjectId;
+  senderEmail?: string | null;
+  senderId?: Types.ObjectId | null;
+  receiverEmail?: string | null;
+  receiverId?: Types.ObjectId | null;
   amount: number;
   transactionFee?: number;
-  commission?: number; // Agent commission
+  agentCommission?: number | null; // Agent commission
   status: TRANSACTION_STATUS;
   notes?: string;
   createdAt: Date;
