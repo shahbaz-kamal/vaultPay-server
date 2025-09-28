@@ -14,8 +14,8 @@ import bcryptJs from "bcryptJs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
 import { Wallet } from "../wallet/wallet.model";
-import { excludedFields, searchableFields } from "../../constants";
-import { Query } from "mongoose";
+import { searchableFields } from "../../constants";
+
 import { QueryBuilder } from "../../utils/QueryBuilder";
 
 const createUser = async (payload: Partial<IUser>) => {
@@ -56,6 +56,9 @@ const createUser = async (payload: Partial<IUser>) => {
     ],
     { session }
   );
+
+  user[0].wallet = wallet[0]._id;
+  await user[0].save({ session });
   await session.commitTransaction();
   session.endSession();
   return { user, wallet };

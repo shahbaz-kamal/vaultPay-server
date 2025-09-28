@@ -32,6 +32,7 @@ export enum AgentRequestStatus {
 }
 export interface IUser {
   _id?: Types.ObjectId;
+  wallet?: Types.ObjectId;
   name: string;
   email: string;
   password?: string;

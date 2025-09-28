@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import {
   ITransaction,
   TRANSACTION_STATUS,
@@ -14,8 +14,10 @@ const transactionSchema = new Schema<ITransaction>({
     required: true,
     enum: Object.values(TRANSACTION_SOURCE),
   },
-  from: { type: String, default: null },
-  to: { type: String, default: null },
+  senderEmail: { type: String, default: null },
+  senderId: { type: mongoose.Types.ObjectId, default: null },
+  receiverEmail: { type: String, default: null },
+  receiverId: { type: mongoose.Types.ObjectId, default: null },
   amount: { type: Number },
   transactionFee: { type: Number },
   agentCommission: { type: Number, default: null },
