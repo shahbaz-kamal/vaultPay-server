@@ -22,7 +22,7 @@ const sendMoney = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Add Money Successfull",
+      message: "Send Money Successfull",
       data: sendMoney,
     });
   }
@@ -34,7 +34,7 @@ const cashOut = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Add Money Successfull",
+      message: "Cash out Successfull",
       data: cashOut,
     });
   }
