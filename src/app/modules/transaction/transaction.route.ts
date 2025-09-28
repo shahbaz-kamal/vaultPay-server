@@ -24,5 +24,11 @@ router.post(
   checkAuth(...Object.values(Role)),
   TransactionController.cashOut
 );
+router.post(
+  "/cash-in",
+  validateRequest(sendMoneyZodSchema),
+  checkAuth(...Object.values(Role)),
+  TransactionController.cashIn
+);
 
 export const TransactionRoute = router;

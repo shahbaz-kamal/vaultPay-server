@@ -22,7 +22,7 @@ const sendMoney = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Add Money Successfull",
+      message: "Send Money Successfull",
       data: sendMoney,
     });
   }
@@ -34,9 +34,21 @@ const cashOut = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Add Money Successfull",
+      message: "Cash out Successfull",
       data: cashOut,
     });
   }
 );
-export const TransactionController = { addMoney ,sendMoney,cashOut};
+const cashIn = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const cashIn = await TransactionService.cashIn(req.body);
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Cash out Successfull",
+      data: cashIn,
+    });
+  }
+);
+export const TransactionController = { addMoney, sendMoney, cashOut, cashIn };

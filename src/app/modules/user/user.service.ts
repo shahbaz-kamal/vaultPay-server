@@ -151,35 +151,56 @@ const updateUser = async (
   if (payload.password) {
     payload.password = await bcryptJs.hash(
       payload.password,
-      envVars.BCRYPT_SALT_ROUND
+      Number(envVars.BCRYPT_SALT_ROUND)
     );
-  }
-  // check if the user is updating their own profile
-  const isSelfUpdate = decodedToken.userId === userId;
-  const requesterRole = decodedToken.role;
+    if (isUserExist.auths.length) {
+      const isCredentialsExist = isUserExist.auths.find(
+        (auth) => auth.provider === "credentials"
+      );
+      if (!isCredentialsExist) {
+        const newAuth: IAuthProvider = {
+          provider: "credentials",
+          providerId: isUserExist.email,
+        };
+        isUserExist.auths.push(newAuth);
+        await isUserExist.save();
+      }
+    }
+    // check if the user is updating their own profile
+    const isSelfUpdate = decodedToken.userId === userId;
+    const requesterRole = decodedToken.role;
 
-  if (payload.agentRequestStatus) {
-    if (
-      payload.agentRequestStatus !== AgentRequestStatus.PENDING &&
-      isSelfUpdate &&
-      requesterRole === Role.USER
-    )
+    if (payload.agentRequestStatus) {
+      if (
+        payload.agentRequestStatus !== AgentRequestStatus.PENDING &&
+        isSelfUpdate &&
+        requesterRole === Role.USER
+      )
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+    }
+
+    if (payload.agentApprovedAt && requesterRole === Role.USER)
       throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+
+    const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+      new: true,
+      runValidators: true,
+    });
+    return newUpdatedUser;
   }
+};
 
-  if (payload.agentApprovedAt && requesterRole === Role.USER)
-    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+const getMe = async (myId: string) => {
+  const user = await User.findById(myId).select("-password");
 
-  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
-    new: true,
-    runValidators: true,
-  });
-  return newUpdatedUser;
+  return {
+    data: user,
+  };
 };
 
 export const UserServices = {
   createUser,
   getAllUser,
   updateUser,
-  getSingleUser,
+  getSingleUser,getMe
 };
