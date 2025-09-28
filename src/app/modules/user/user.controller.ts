@@ -23,6 +23,20 @@ const createUser = catchAsync(
   }
 );
 
+const getSingleUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
+    const userId = req.params.id;
+    const result = await UserServices.getSingleUser(userId);
+
+    sendResponse(res, {
+      success: true,
+      message: "single user data retrieved successfully",
+      statusCode: statusCode.OK,
+      data: result.data,
+    });
+  }
+);
 const getAllUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
@@ -56,4 +70,9 @@ const updateUser = catchAsync(
   }
 );
 
-export const UserControllers = { createUser, getAllUser, updateUser };
+export const UserControllers = {
+  createUser,
+  getAllUser,
+  updateUser,
+  getSingleUser,
+};

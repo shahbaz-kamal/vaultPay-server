@@ -14,6 +14,7 @@ export enum TRANSACTION_STATUS {
 }
 export enum TRANSACTION_SOURCE {
   BANK = "BANK",
+  SSLCOMMERZ = "SSLCOMMERZ",
   USER = "USER",
   AGENT = "AGENT",
   SYSTEM = "SYSTEM",
@@ -32,5 +33,4 @@ export interface ITransaction {
   notes?: string;
   createdAt: Date;
   completedAt?: Date;
- 
 }

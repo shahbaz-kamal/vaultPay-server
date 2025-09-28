@@ -5,7 +5,7 @@ import {
   TRANSACTION_SOURCE,
   TRANSACTION_TYPE,
 } from "./transaction.interface";
-import { number } from "zod";
+
 
 const transactionSchema = new Schema<ITransaction>({
   transactionId: { type: String, required: true },

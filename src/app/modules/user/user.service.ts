@@ -117,6 +117,10 @@ const getAllUser = async (query: Record<string, string>) => {
 //   return { data: user, meta };
 // };
 
+const getSingleUser = async (userId: string) => {
+  const user = await User.findById(userId);
+  return { data: user };
+};
 const updateUser = async (
   userId: string,
   payload: Partial<IUser>,
@@ -170,4 +174,9 @@ const updateUser = async (
   return newUpdatedUser;
 };
 
-export const UserServices = { createUser, getAllUser, updateUser };
+export const UserServices = {
+  createUser,
+  getAllUser,
+  updateUser,
+  getSingleUser,
+};
