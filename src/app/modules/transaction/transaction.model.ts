@@ -6,7 +6,6 @@ import {
   TRANSACTION_TYPE,
 } from "./transaction.interface";
 
-
 const transactionSchema = new Schema<ITransaction>({
   transactionId: { type: String, required: true },
   type: { type: String, required: true, enum: Object.values(TRANSACTION_TYPE) },
@@ -15,11 +14,11 @@ const transactionSchema = new Schema<ITransaction>({
     required: true,
     enum: Object.values(TRANSACTION_SOURCE),
   },
-  from: { type: Schema.Types.ObjectId },
-  to: { type: Schema.Types.ObjectId },
+  from: { type: String, default: null },
+  to: { type: String, default: null },
   amount: { type: Number },
   transactionFee: { type: Number },
-  commission: { type: Number },
+  agentCommission: { type: Number, default: null },
   status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
   notes: { type: String },
   completedAt: { type: Date },
