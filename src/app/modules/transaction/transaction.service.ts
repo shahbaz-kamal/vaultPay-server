@@ -1,3 +1,4 @@
+import { Query } from "mongoose";
 import { User } from "./../user/user.model";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
@@ -168,7 +169,7 @@ const addMoneySuccess = async (query: Record<string, string>) => {
     await session.commitTransaction();
     session.endSession();
 
-    return { success: true, updatedTransaction, updatedWallet };
+    return { success: true, message: "Payment Completed successfully" };
   } catch (error) {
     console.log(error);
     session.abortTransaction();
@@ -176,29 +177,39 @@ const addMoneySuccess = async (query: Record<string, string>) => {
   }
 };
 
-const addMoneyFail = async () => {
-  const session = await Transaction.startSession();
-  session.startTransaction();
+const addMoneyFail = async (query: Record<string, string>) => {
   try {
-    await session.commitTransaction();
-    session.endSession();
+    //updating transaction wallet
+    const updatedTransaction = await Transaction.findOneAndDelete({
+      transactionId: query.transactionId,
+    });
+    if (!updatedTransaction) {
+      throw new AppError(404, "Transaction not found");
+    }
+
+    //get reciever
+
+    return { success: false, message: "Payment failed" };
   } catch (error) {
     console.log(error);
-    session.abortTransaction();
-    session.endSession();
   }
 };
 
-const addMoneyCancel = async () => {
-  const session = await Transaction.startSession();
-  session.startTransaction();
+const addMoneyCancel = async (query: Record<string, string>) => {
   try {
-    await session.commitTransaction();
-    session.endSession();
+    //updating transaction wallet
+    const updatedTransaction = await Transaction.findOneAndDelete({
+      transactionId: query.transactionId,
+    });
+    if (!updatedTransaction) {
+      throw new AppError(404, "Transaction not found");
+    }
+
+    //get reciever
+
+    return { success: false, message: "Payment Cancelled" };
   } catch (error) {
     console.log(error);
-    session.abortTransaction();
-    session.endSession();
   }
 };
 // export interface ITransaction {

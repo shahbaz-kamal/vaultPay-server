@@ -18,10 +18,14 @@ const addMoney = catchAsync(
 );
 const addMoneySuccess = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const query=req.query
-    const result = await TransactionService.addMoneySuccess(query as Record<string,string>);
-    if(result?.success){
-      res.redirect(envVars.SSL.SUCCESS_FRONTEND_URL)
+    const query = req.query;
+    const result = await TransactionService.addMoneySuccess(
+      query as Record<string, string>
+    );
+    if (result?.success) {
+      res.redirect(
+        `${envVars.SSL.SUCCESS_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
+      );
     }
     // sendResponse(res, {
     //   statusCode: httpStatus.CREATED,
@@ -33,24 +37,28 @@ const addMoneySuccess = catchAsync(
 );
 const addMoneyFail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await TransactionService.addMoney(req.body);
-    sendResponse(res, {
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: "Add Money Successfull",
-      data: result,
-    });
+    const query = req.query;
+    const result = await TransactionService.addMoneyFail(
+      query as Record<string, string>
+    );
+    if (result?.success === false) {
+      res.redirect(
+        `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
+      );
+    }
   }
 );
 const addMoneyCancel = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await TransactionService.addMoney(req.body);
-    sendResponse(res, {
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: "Add Money Successfull",
-      data: result,
-    });
+    const query = req.query;
+    const result = await TransactionService.addMoneyFail(
+      query as Record<string, string>
+    );
+    if (result?.success === false) {
+      res.redirect(
+        `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
+      );
+    }
   }
 );
 
