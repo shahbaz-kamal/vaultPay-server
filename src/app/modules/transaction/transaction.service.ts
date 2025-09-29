@@ -1,4 +1,3 @@
-import { Query } from "mongoose";
 import { User } from "./../user/user.model";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
@@ -9,7 +8,7 @@ import {
 } from "../../utils/calculateTransactionFee";
 import { generateTransactionId } from "../../utils/generateTransactionId";
 import { Role } from "../user/user.interface";
-import { User } from "../user/user.model";
+
 import { Wallet } from "../wallet/wallet.model";
 import {
   ITransaction,
@@ -21,7 +20,9 @@ import { Transaction } from "./transaction.model";
 import { System } from "../system/system.model";
 import { ISSLCommerze } from "../sslCommerz/sslCommerze.interface";
 import { SSLService } from "../sslCommerz/sslCommerze.service";
-import { success } from "zod";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { searchableFields } from "../../constants";
+import { JwtPayload } from "jsonwebtoken";
 
 const addMoney = async (payload: Partial<ITransaction>) => {
   const session = await Transaction.startSession();
@@ -157,7 +158,7 @@ const addMoneySuccess = async (query: Record<string, string>) => {
     const newBalance =
       Number(receiverWallet.balance) + Number(updatedTransaction.amount);
 
-    const updatedWallet = await Wallet.findOneAndUpdate(
+    await Wallet.findOneAndUpdate(
       {
         _id: receiverWallet._id,
       },
@@ -568,6 +569,66 @@ const cashIn = async (payload: Partial<ITransaction>) => {
   }
 };
 
+const getAllTransaction = async (query: Record<string, string>) => {
+  const modelQuery = new QueryBuilder<ITransaction>(
+    Transaction.find()
+      .populate("senderId", "name email role isActive")
+      .populate("receiverId", "name email role isActive"),
+    query
+  );
+  const transactions = modelQuery
+
+    .search(searchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .pagination();
+
+  const [data, meta] = await Promise.all([
+    transactions.build(),
+    transactions.getMeta(),
+  ]);
+
+  return { data, meta };
+};
+
+const getMyTransactions = async (
+  decodedToken: JwtPayload,
+  query: Record<string, string>
+) => {
+  const myId = decodedToken.userId;
+  const isMyDataExist = await User.findById(myId);
+  if (!isMyDataExist)
+    throw new AppError(
+      401,
+      "Your Data is not found. Please contact our support team."
+    );
+  const isVerified = isMyDataExist.role === decodedToken.role;
+  if (!isVerified) throw new AppError(401, "User is not verified");
+  // const myTransactions=await Transaction.
+  const modelQuery = new QueryBuilder<ITransaction>(
+    Transaction.find({
+      $or: [{ senderId: myId }, { receiverId: myId }],
+    })
+      .populate("senderId", "name email role isActive")
+      .populate("receiverId", "name email role isActive"),
+    query
+  );
+
+  const myTransactions = modelQuery
+    .dateFiltering()
+    .search(searchableFields)
+    .sort()
+    .fields()
+    .pagination();
+
+  const [data, meta] = await Promise.all([
+    myTransactions.build(),
+    myTransactions.getMeta(),
+  ]);
+
+  return { data, meta };
+};
 export const TransactionService = {
   addMoney,
   addMoneySuccess,
@@ -576,4 +637,6 @@ export const TransactionService = {
   sendMoney,
   cashOut,
   cashIn,
+  getAllTransaction,
+  getMyTransactions,
 };

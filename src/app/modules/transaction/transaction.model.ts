@@ -5,6 +5,7 @@ import {
   TRANSACTION_SOURCE,
   TRANSACTION_TYPE,
 } from "./transaction.interface";
+import { User } from "../user/user.model";
 
 const transactionSchema = new Schema<ITransaction>(
   {
@@ -20,9 +21,9 @@ const transactionSchema = new Schema<ITransaction>(
       enum: Object.values(TRANSACTION_SOURCE),
     },
     senderEmail: { type: String, default: null },
-    senderId: { type: mongoose.Types.ObjectId, default: null },
+    senderId: { type: mongoose.Types.ObjectId, ref: "User", default: null },
     receiverEmail: { type: String, default: null },
-    receiverId: { type: mongoose.Types.ObjectId, default: null },
+    receiverId: { type: mongoose.Types.ObjectId, ref: "User", default: null },
     amount: { type: Number },
     transactionFee: { type: Number },
     agentCommission: { type: Number, default: null },

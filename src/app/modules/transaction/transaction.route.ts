@@ -45,5 +45,16 @@ router.post(
   checkAuth(...Object.values(Role)),
   TransactionController.cashIn
 );
+router.get(
+  "/transactions",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  TransactionController.getAllTransaction
+);
+
+router.get(
+  "/myTransactions",
+  checkAuth(...Object.values(Role)),
+  TransactionController.getMyTransactions
+);
 
 export const TransactionRoute = router;
