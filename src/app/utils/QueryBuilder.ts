@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Query } from "mongoose";
 import { excludedFields } from "../constants";
 import { TMeta } from "../modules/user/user.interface";
@@ -59,6 +60,40 @@ export class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.limit(limit).skip(skip);
     return this;
   }
+
+  dateFiltering(): this {
+    let fromRaw = this.query.from?.trim() || "2000-01-01T00:00:00.000Z";
+    let toRaw = this.query.to?.trim() || new Date().toISOString();
+
+
+    if (fromRaw.includes(' ')) {
+        fromRaw = fromRaw.replace(' ', '+');
+    }
+ 
+    if (toRaw.includes(' ')) {
+        toRaw = toRaw.replace(' ', '+');
+    }
+   
+
+    const from = new Date(fromRaw);
+    const to = new Date(toRaw);
+
+    if (isNaN(from.getTime())) {
+        console.log("Final fromRaw after fix:", fromRaw); // debug
+        throw new Error("Invalid 'from' date");
+    }
+    if (isNaN(to.getTime())) {
+        console.log("Final toRaw after fix:", toRaw); // debug
+        throw new Error("Invalid 'to' date");
+    }
+
+    this.modelQuery = this.modelQuery.find({
+        createdAt: { $gte: from, $lte: to },
+    });
+
+    return this;
+}
+  
 
   build() {
     return this.modelQuery;

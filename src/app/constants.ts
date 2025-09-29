@@ -6,4 +6,7 @@ export const searchableFields = [
   "sources",
   "status",
   "notes",
+  "senderEmail",
+  "receiverEmail",
+  "source"
 ];

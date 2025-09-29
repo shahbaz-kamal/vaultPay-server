@@ -4,6 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import { TransactionService } from "./transaction.service";
 import { envVars } from "../../config/env";
+import { JwtPayload } from "jsonwebtoken";
 
 const addMoney = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -98,6 +99,43 @@ const cashIn = catchAsync(
     });
   }
 );
+
+const getAllTransaction = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
+    const query = req.query;
+    const result = await TransactionService.getAllTransaction(
+      query as Record<string, string>
+    );
+
+    sendResponse(res, {
+      success: true,
+      message: "Transaction data retrieved successfully",
+      statusCode: httpStatus.OK,
+      data: result.data,
+      meta: result?.meta,
+    });
+  }
+);
+const getMyTransactions = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const query = req.query;
+
+    const result = await TransactionService.getMyTransactions(
+      decodedToken,
+      query as Record<string, string>
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Your Transaction data has been received",
+      data: result.data,
+      meta: result?.meta,
+    });
+  }
+);
 export const TransactionController = {
   addMoney,
   addMoneySuccess,
@@ -106,4 +144,6 @@ export const TransactionController = {
   sendMoney,
   cashOut,
   cashIn,
+  getAllTransaction,
+  getMyTransactions,
 };
