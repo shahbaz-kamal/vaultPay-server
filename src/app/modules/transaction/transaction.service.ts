@@ -157,9 +157,9 @@ const addMoneySuccess = async (query: Record<string, string>) => {
     const newBalance =
       Number(receiverWallet.balance) + Number(updatedTransaction.amount);
 
-    const updatedWallet = await Transaction.findByIdAndUpdate(
+    const updatedWallet = await Wallet.findOneAndUpdate(
       {
-        _id: updatedTransaction._id,
+        _id: receiverWallet._id,
       },
       {
         balance: newBalance,
