@@ -17,6 +17,19 @@ interface EnvVars {
   FRONTEND_URL: string;
   EXPRESS_SESSION_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
+  BACKENED_URL?: string;
+  SSL: {
+    STORE_ID: string;
+    STORE_PASS: string;
+    ADDMONEY_API: string;
+    VALIDATION_API: string;
+    SUCCESS_FRONTEND_URL: string;
+    FAIL_FRONTEND_URL: string;
+    CANCEL_FRONTEND_URL: string;
+    SUCCESS_BACKEND_URL: string;
+    FAIL_BACKEND_URL: string;
+    CANCEL_BACKEND_URL: string;
+  };
 }
 
 const loadEnvironmentVariables = (): EnvVars => {
@@ -36,6 +49,17 @@ const loadEnvironmentVariables = (): EnvVars => {
     "GOOGLE_CALLBACK_URL",
     "FRONTEND_URL",
     "EXPRESS_SESSION_SECRET",
+    "BACKENED_URL",
+    "SSL_STORE_ID",
+    "SSL_STORE_PASS",
+    "SSL_ADDMONEY_API",
+    "SSL_VALIDATION_API",
+    "SSL_SUCCESS_FRONTEND_URL",
+    "SSL_FAIL_FRONTEND_URL",
+    "SSL_CANCEL_FRONTEND_URL",
+    "SSL_SUCCESS_BACKEND_URL",
+    "SSL_FAIL_BACKEND_URL",
+    "SSL_CANCEL_BACKEND_URL",
   ];
 
   requiredVariables.forEach((key) => {
@@ -61,6 +85,19 @@ const loadEnvironmentVariables = (): EnvVars => {
     EXPRESS_SESSION_SECRET: process.env.EXPRESS_SESSION_SECRET as string,
     FRONTEND_URL: process.env.FRONTEND_URL as string,
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
+    BACKENED_URL: process.env.BACKENED_URL as string,
+    SSL: {
+      STORE_ID: process.env.SSL_STORE_ID as string,
+      STORE_PASS: process.env.SSL_STORE_PASS as string,
+      ADDMONEY_API: process.env.SSL_ADDMONEY_API as string,
+      VALIDATION_API: process.env.SSL_VALIDATION_API as string,
+      SUCCESS_FRONTEND_URL: process.env.SSL_SUCCESS_FRONTEND_URL as string,
+      FAIL_FRONTEND_URL: process.env.SSL_FAIL_FRONTEND_URL as string,
+      CANCEL_FRONTEND_URL: process.env.SSL_CANCEL_FRONTEND_URL as string,
+      SUCCESS_BACKEND_URL: process.env.SSL_SUCCESS_BACKEND_URL as string,
+      FAIL_BACKEND_URL: process.env.SSL_FAIL_BACKEND_URL as string,
+      CANCEL_BACKEND_URL: process.env.SSL_CANCEL_BACKEND_URL as string,
+    },
   };
 };
 export const envVars: EnvVars = loadEnvironmentVariables();
