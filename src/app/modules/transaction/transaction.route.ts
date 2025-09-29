@@ -13,6 +13,21 @@ router.post(
   TransactionController.addMoney
 );
 router.post(
+  "/add-money/success",
+
+  TransactionController.addMoneySuccess
+);
+router.post(
+  "/add-money/fail",
+
+  TransactionController.addMoneyFail
+);
+router.post(
+  "/add-money/cancel",
+
+  TransactionController.addMoneyCancel
+);
+router.post(
   "/send-money",
   validateRequest(sendMoneyZodSchema),
   checkAuth(...Object.values(Role)),

@@ -3,14 +3,53 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import { TransactionService } from "./transaction.service";
+import { envVars } from "../../config/env";
 
 const addMoney = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const result = await TransactionService.addMoney(req.body);
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
       message: "Add Money Successfull",
-      data: null,
+      data: result,
+    });
+  }
+);
+const addMoneySuccess = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query=req.query
+    const result = await TransactionService.addMoneySuccess(query as Record<string,string>);
+    if(result?.success){
+      res.redirect(envVars.SSL.SUCCESS_FRONTEND_URL)
+    }
+    // sendResponse(res, {
+    //   statusCode: httpStatus.CREATED,
+    //   success: true,
+    //   message: "Add Money Successfull",
+    //   data: result,
+    // });
+  }
+);
+const addMoneyFail = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await TransactionService.addMoney(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Add Money Successfull",
+      data: result,
+    });
+  }
+);
+const addMoneyCancel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await TransactionService.addMoney(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Add Money Successfull",
+      data: result,
     });
   }
 );
@@ -51,4 +90,12 @@ const cashIn = catchAsync(
     });
   }
 );
-export const TransactionController = { addMoney, sendMoney, cashOut, cashIn };
+export const TransactionController = {
+  addMoney,
+  addMoneySuccess,
+  addMoneyFail,
+  addMoneyCancel,
+  sendMoney,
+  cashOut,
+  cashIn,
+};

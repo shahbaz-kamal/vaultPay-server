@@ -18,9 +18,188 @@ import {
 } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 import { System } from "../system/system.model";
+import { ISSLCommerze } from "../sslCommerz/sslCommerze.interface";
+import { SSLService } from "../sslCommerz/sslCommerze.service";
+import { success } from "zod";
 
-const addMoney = async () => {
-  console.log("addmoney");
+const addMoney = async (payload: Partial<ITransaction>) => {
+  const session = await Transaction.startSession();
+  session.startTransaction();
+  try {
+    // checking sender verification
+
+    //checking reciever verificTION
+    const isReceiverExist = await User.findOne({
+      email: payload.receiverEmail,
+    });
+    if (!isReceiverExist)
+      throw new AppError(
+        401,
+        "Your profile has not been found. please contact our Call center"
+      );
+    if (!isReceiverExist.isVerified)
+      throw new AppError(401, "You are not verified");
+    if (isReceiverExist.isDeleted)
+      throw new AppError(401, "Receiver is deleted");
+    if (!isReceiverExist.address)
+      throw new AppError(
+        401,
+        "Address should be updated in your profile to initialize add money"
+      );
+    if (!isReceiverExist.phone)
+      throw new AppError(
+        401,
+        "Phone number should be updated in your profile to initialize add money"
+      );
+
+    const transactionId = generateTransactionId();
+    const transactionType = TRANSACTION_TYPE.ADD_MONEY;
+    const transactionSource = TRANSACTION_SOURCE.SSLCOMMERZ;
+    const transactionStatus = TRANSACTION_STATUS.PENDING;
+    // const transactionFee = await calculateSendMoney();
+
+    payload.transactionId = transactionId;
+    payload.type = transactionType;
+    payload.source = transactionSource;
+    payload.status = transactionStatus;
+    payload.receiverId = isReceiverExist._id;
+
+    const transaction = await Transaction.create([payload], { session });
+
+    const amount = Number(payload.amount);
+    if (isNaN(amount) || amount <= 0) {
+      throw new AppError(400, "Invalid amount");
+    }
+
+    //ssl commerze integration
+    const sslPayload: ISSLCommerze = {
+      transactionId,
+      name: isReceiverExist.name,
+      email: isReceiverExist.email,
+      amount,
+      address: isReceiverExist.address,
+      phoneNumber: isReceiverExist.phone,
+    };
+    const sslPayment = await SSLService.sslAddMoneyInit(sslPayload);
+    // const receiverWallet = await Wallet.findById(isReceiverExist.wallet, null, {
+    //   session,
+    // });
+
+    // if (!receiverWallet) {
+    //   throw new AppError(500, "Receiver wallet not found ");
+    // }
+    // //updating wallets of sender and receiver
+    // const newWalletBalanceOfReceiver =
+    //   (receiverWallet?.balance as number) + amount;
+
+    // await Wallet.findByIdAndUpdate(
+    //   isReceiverExist.wallet,
+    //   {
+    //     balance: newWalletBalanceOfReceiver,
+    //   },
+    //   { session }
+    // );
+
+    // const updatedTransaction = await Transaction.findByIdAndUpdate(
+    //   transaction[0]._id,
+    //   { status: TRANSACTION_STATUS.COMPLETED },
+    //   { runValidators: true, new: true, session }
+    // );
+    await session.commitTransaction();
+    session.endSession();
+
+    console.log("from add Money\n", payload);
+    return { paymeent: sslPayment.GatewayPageURL, result: transaction };
+  } catch (error: any) {
+    console.log(error);
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(401, error.message);
+  }
+};
+
+const addMoneySuccess = async (query: Record<string, string>) => {
+  const session = await Transaction.startSession();
+  session.startTransaction();
+  try {
+    //updating transaction wallet
+    const updatedTransaction = await Transaction.findOneAndUpdate(
+      {
+        transactionId: query.transactionId,
+      },
+      {
+        status: TRANSACTION_STATUS.COMPLETED,
+      },
+      { new: true, runValidators: true, session }
+    );
+    if (!updatedTransaction) {
+      throw new AppError(404, "Transaction not found");
+    }
+
+    //get reciever
+    const isReceiverExist = await User.findById(updatedTransaction.receiverId);
+
+    if (!isReceiverExist) throw new AppError(401, "User does not exist");
+
+    //updating receiver wallet balance
+
+    const receiverWallet = await Wallet.findOne(
+      { _id: isReceiverExist.wallet },
+      null,
+      { session }
+    );
+
+    if (!receiverWallet) {
+      throw new AppError(404, "Receiver wallet not found");
+    }
+
+    const newBalance =
+      Number(receiverWallet.balance) + Number(updatedTransaction.amount);
+
+    const updatedWallet = await Transaction.findByIdAndUpdate(
+      {
+        _id: updatedTransaction._id,
+      },
+      {
+        balance: newBalance,
+      },
+      { new: true, runValidators: true, session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, updatedTransaction, updatedWallet };
+  } catch (error) {
+    console.log(error);
+    session.abortTransaction();
+    session.endSession();
+  }
+};
+
+const addMoneyFail = async () => {
+  const session = await Transaction.startSession();
+  session.startTransaction();
+  try {
+    await session.commitTransaction();
+    session.endSession();
+  } catch (error) {
+    console.log(error);
+    session.abortTransaction();
+    session.endSession();
+  }
+};
+
+const addMoneyCancel = async () => {
+  const session = await Transaction.startSession();
+  session.startTransaction();
+  try {
+    await session.commitTransaction();
+    session.endSession();
+  } catch (error) {
+    console.log(error);
+    session.abortTransaction();
+    session.endSession();
+  }
 };
 // export interface ITransaction {
 //   _id: Types.ObjectId;
@@ -37,6 +216,7 @@ const addMoney = async () => {
 //   createdAt: Date;
 //   completedAt?: Date;
 // }
+
 const sendMoney = async (payload: Partial<ITransaction>) => {
   const session = await Transaction.startSession();
   session.startTransaction();
@@ -252,10 +432,9 @@ const cashOut = async (payload: Partial<ITransaction>) => {
     console.log(error);
     await session.abortTransaction();
     session.endSession();
-    throw new AppError(401, error.message);
+    throw new AppError(401, error);
   }
 };
-
 
 const cashIn = async (payload: Partial<ITransaction>) => {
   const session = await Transaction.startSession();
@@ -378,4 +557,12 @@ const cashIn = async (payload: Partial<ITransaction>) => {
   }
 };
 
-export const TransactionService = { addMoney, sendMoney, cashOut, cashIn };
+export const TransactionService = {
+  addMoney,
+  addMoneySuccess,
+  addMoneyFail,
+  addMoneyCancel,
+  sendMoney,
+  cashOut,
+  cashIn,
+};
