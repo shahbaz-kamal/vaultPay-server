@@ -30,6 +30,7 @@ export interface ITransaction {
   receiverId?: Types.ObjectId | null;
   amount: number;
   transactionFee?: number;
+
   agentCommission?: number | null; // Agent commission
   status: TRANSACTION_STATUS;
   notes?: string;

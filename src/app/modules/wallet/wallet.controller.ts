@@ -17,7 +17,7 @@ const getAllWallet = catchAsync(
 
     sendResponse(res, {
       success: true,
-      message: "user data retrieved successfully",
+      message: "Wallet data retrieved successfully",
       statusCode: statusCode.OK,
       data: result.data,
       meta: result?.meta,

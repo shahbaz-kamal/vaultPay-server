@@ -30,9 +30,10 @@ router.post(
 router.post(
   "/send-money",
   validateRequest(sendMoneyZodSchema),
-  checkAuth(...Object.values(Role)),
+  checkAuth(Role.USER),
   TransactionController.sendMoney
 );
+
 router.post(
   "/cash-out",
   validateRequest(sendMoneyZodSchema),

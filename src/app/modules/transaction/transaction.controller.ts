@@ -8,7 +8,8 @@ import { JwtPayload } from "jsonwebtoken";
 
 const addMoney = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await TransactionService.addMoney(req.body);
+    const decodedToken = req.user as JwtPayload;
+    const result = await TransactionService.addMoney(req.body, decodedToken);
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
@@ -65,7 +66,11 @@ const addMoneyCancel = catchAsync(
 
 const sendMoney = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const sendMoney = await TransactionService.sendMoney(req.body);
+    const decodedToken = req.user as JwtPayload;
+    const sendMoney = await TransactionService.sendMoney(
+      req.body,
+      decodedToken
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -77,7 +82,8 @@ const sendMoney = catchAsync(
 );
 const cashOut = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const cashOut = await TransactionService.cashOut(req.body);
+    const decodedToken = req.user as JwtPayload;
+    const cashOut = await TransactionService.cashOut(req.body, decodedToken);
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -94,7 +100,7 @@ const cashIn = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Cash out Successfull",
+      message: "Cash In Successfull",
       data: cashIn,
     });
   }

@@ -24,7 +24,10 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { searchableFields } from "../../constants";
 import { JwtPayload } from "jsonwebtoken";
 
-const addMoney = async (payload: Partial<ITransaction>) => {
+const addMoney = async (
+  payload: Partial<ITransaction>,
+  decodedToken: JwtPayload
+) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
@@ -34,6 +37,10 @@ const addMoney = async (payload: Partial<ITransaction>) => {
     const isReceiverExist = await User.findOne({
       email: payload.receiverEmail,
     });
+
+    if (decodedToken.role !== isReceiverExist?.role)
+      throw new AppError(401, "You are not authorized");
+
     if (!isReceiverExist)
       throw new AppError(
         401,
@@ -46,12 +53,12 @@ const addMoney = async (payload: Partial<ITransaction>) => {
     if (!isReceiverExist.address)
       throw new AppError(
         401,
-        "Address should be updated in your profile to initialize add money"
+        "Address should be updated in your profile through update user route to initialize add money"
       );
     if (!isReceiverExist.phone)
       throw new AppError(
         401,
-        "Phone number should be updated in your profile to initialize add money"
+        "Phone number should be updated in your profile through update user route to initialize add money"
       );
 
     const transactionId = generateTransactionId();
@@ -83,30 +90,6 @@ const addMoney = async (payload: Partial<ITransaction>) => {
       phoneNumber: isReceiverExist.phone,
     };
     const sslPayment = await SSLService.sslAddMoneyInit(sslPayload);
-    // const receiverWallet = await Wallet.findById(isReceiverExist.wallet, null, {
-    //   session,
-    // });
-
-    // if (!receiverWallet) {
-    //   throw new AppError(500, "Receiver wallet not found ");
-    // }
-    // //updating wallets of sender and receiver
-    // const newWalletBalanceOfReceiver =
-    //   (receiverWallet?.balance as number) + amount;
-
-    // await Wallet.findByIdAndUpdate(
-    //   isReceiverExist.wallet,
-    //   {
-    //     balance: newWalletBalanceOfReceiver,
-    //   },
-    //   { session }
-    // );
-
-    // const updatedTransaction = await Transaction.findByIdAndUpdate(
-    //   transaction[0]._id,
-    //   { status: TRANSACTION_STATUS.COMPLETED },
-    //   { runValidators: true, new: true, session }
-    // );
     await session.commitTransaction();
     session.endSession();
 
@@ -213,28 +196,18 @@ const addMoneyCancel = async (query: Record<string, string>) => {
     console.log(error);
   }
 };
-// export interface ITransaction {
-//   _id: Types.ObjectId;
-//   transactionId: string; // Unique reference (e.g., "TXN123456")
-//   type: TRANSACTION_TYPE;
-//   source: TRANSACTION_SOURCE; // Who initiated the transaction
-//   from?: Types.ObjectId;
-//   to?: Types.ObjectId;
-//   amount: number;
-//   transactionFee?: number;
-//   commission?: number; // Agent commission
-//   status: TRANSACTION_STATUS;
-//   notes?: string;
-//   createdAt: Date;
-//   completedAt?: Date;
-// }
 
-const sendMoney = async (payload: Partial<ITransaction>) => {
+const sendMoney = async (
+  payload: Partial<ITransaction>,
+  decodedToken: JwtPayload
+) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
     // checking sender verification
     const isSenderExist = await User.findOne({ email: payload.senderEmail });
+    if (decodedToken.role !== isSenderExist?.role)
+      throw new AppError(401, "You are not authorized");
 
     if (!isSenderExist) throw new AppError(401, "User does not exist");
     if (!isSenderExist.isVerified)
@@ -246,6 +219,8 @@ const sendMoney = async (payload: Partial<ITransaction>) => {
       email: payload.receiverEmail,
     });
     if (!isReceiverExist) throw new AppError(401, "Receiver does not exist");
+    if (isReceiverExist.role !== Role.USER)
+      throw new AppError(401, "Receiver must be User");
     if (!isReceiverExist.isVerified)
       throw new AppError(401, "Receiver is not verified");
     if (isReceiverExist.isDeleted)
@@ -330,17 +305,24 @@ const sendMoney = async (payload: Partial<ITransaction>) => {
     throw new AppError(401, error.message);
   }
 };
-const cashOut = async (payload: Partial<ITransaction>) => {
+const cashOut = async (
+  payload: Partial<ITransaction>,
+  decodedToken: JwtPayload
+) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
     // checking sender verification
     const isSenderExist = await User.findOne({ email: payload.senderEmail });
 
+    if (decodedToken.role !== isSenderExist?.role)
+      throw new AppError(401, "You are not authorized");
     if (!isSenderExist) throw new AppError(401, "User does not exist");
     if (!isSenderExist.isVerified)
       throw new AppError(401, "Please verify your account to send money");
     if (isSenderExist.isDeleted) throw new AppError(401, "You are deleted");
+    if (isSenderExist.role !== Role.USER)
+      throw new AppError(401, "Sender must be a user");
 
     //checking reciever verificTION
     const isReceiverExist = await User.findOne({
@@ -372,6 +354,7 @@ const cashOut = async (payload: Partial<ITransaction>) => {
     payload.senderId = isSenderExist._id;
     payload.receiverId = isReceiverExist._id;
     payload.agentCommission = agentCommission;
+
     const transaction = await Transaction.create([payload], { session });
 
     const amount = Number(payload.amount);

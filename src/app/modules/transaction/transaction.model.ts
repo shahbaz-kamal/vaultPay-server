@@ -26,7 +26,8 @@ const transactionSchema = new Schema<ITransaction>(
     receiverId: { type: mongoose.Types.ObjectId, ref: "User", default: null },
     amount: { type: Number },
     transactionFee: { type: Number },
-    agentCommission: { type: Number, default: null },
+
+    remainingBalance: { type: Number, default: null },
     status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
     notes: { type: String },
     completedAt: { type: Date },
