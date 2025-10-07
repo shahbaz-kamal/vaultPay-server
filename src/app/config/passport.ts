@@ -10,7 +10,7 @@ import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/user.interface";
 import { Strategy as LocalStrategy } from "passport-local";
 
-import bcryptJs from "bcryptJs";
+import bcryptJs from "bcryptjs";
 import { Wallet } from "../modules/wallet/wallet.model";
 
 passport.use(
@@ -116,6 +116,7 @@ passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {
   done(null, user._id);
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 passport.deserializeUser(async (id: string, done: any) => {
   try {
     const user = await User.findById(id);

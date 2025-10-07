@@ -16,7 +16,7 @@ import { JwtPayload } from "jsonwebtoken";
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // const loginInfo = await AuthServices.credentialsLogin(req.body);
-    passport.authenticate("local", async (error: any, user: any, info) => {
+    passport.authenticate("local", async (error: any, user: any, info:any) => {
       if (error) return next(new AppError(401, error));
 
       if (!user) return next(new AppError(401, info?.message));

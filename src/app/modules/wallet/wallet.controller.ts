@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { WalletServices } from "./wallet.service";
 
 import { NextFunction, Request, Response } from "express";

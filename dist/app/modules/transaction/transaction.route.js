@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionRoute = void 0;
+const express_1 = __importDefault(require("express"));
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const user_interface_1 = require("../user/user.interface");
+const transaction_controller_1 = require("./transaction.controller");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const transaction_validation_1 = require("./transaction.validation");
+const router = express_1.default.Router();
+router.post("/add-money", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.addMoney);
+router.post("/add-money/success", transaction_controller_1.TransactionController.addMoneySuccess);
+router.post("/add-money/fail", transaction_controller_1.TransactionController.addMoneyFail);
+router.post("/add-money/cancel", transaction_controller_1.TransactionController.addMoneyCancel);
+router.post("/send-money", (0, validateRequest_1.validateRequest)(transaction_validation_1.sendMoneyZodSchema), (0, checkAuth_1.checkAuth)(user_interface_1.Role.USER), transaction_controller_1.TransactionController.sendMoney);
+router.post("/cash-out", (0, validateRequest_1.validateRequest)(transaction_validation_1.sendMoneyZodSchema), (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.cashOut);
+router.post("/cash-in", (0, validateRequest_1.validateRequest)(transaction_validation_1.sendMoneyZodSchema), (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.cashIn);
+router.get("/transactions", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), transaction_controller_1.TransactionController.getAllTransaction);
+router.get("/myTransactions", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.getMyTransactions);
+exports.TransactionRoute = router;

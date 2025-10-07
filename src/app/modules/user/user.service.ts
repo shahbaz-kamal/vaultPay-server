@@ -6,11 +6,11 @@ import {
   IAuthProvider,
   IUser,
   Role,
-  TMeta,
+
 } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
-import bcryptJs from "bcryptJs";
+import bcryptJs from "bcryptjs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
 import { Wallet } from "../wallet/wallet.model";

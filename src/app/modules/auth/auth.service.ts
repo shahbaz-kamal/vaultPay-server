@@ -2,7 +2,7 @@ import AppError from "../../errorHelpers/AppError";
 
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
-import bcryptJs from "bcryptJs";
+import bcryptJs from "bcryptjs";
 import { createNewAccessTokenWithRefreshToken } from "../../utils/userToken";
 import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../../config/env";

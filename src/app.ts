@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import "./app/config/passport"
+import "./app/config/passport";
 import { logger } from "./app/middlewares/logger";
 import { router } from "./app/routes";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
@@ -25,10 +25,11 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({ origin: envVars.FRONTEND_URL, credentials: true }));
 app.use(logger);
 
 // routing middlewares

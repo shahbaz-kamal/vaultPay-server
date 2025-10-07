@@ -5,7 +5,6 @@ import {
   TRANSACTION_SOURCE,
   TRANSACTION_TYPE,
 } from "./transaction.interface";
-import { User } from "../user/user.model";
 
 const transactionSchema = new Schema<ITransaction>(
   {
@@ -27,7 +26,6 @@ const transactionSchema = new Schema<ITransaction>(
     amount: { type: Number },
     transactionFee: { type: Number },
 
-    remainingBalance: { type: Number, default: null },
     status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
     notes: { type: String },
     completedAt: { type: Date },

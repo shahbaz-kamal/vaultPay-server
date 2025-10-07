@@ -3,7 +3,7 @@ import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
 import { IAuthProvider, Role } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
-import bcryptjs from "bcryptJs";
+import bcryptjs from "bcryptjs";
 import { Wallet } from "../modules/wallet/wallet.model";
 
 export const seedSuperAdmin = async () => {
