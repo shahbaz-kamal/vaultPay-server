@@ -152,12 +152,12 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
         }
         if (payload.agentApprovedAt && requesterRole === user_interface_1.Role.USER)
             throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You are not authorized");
-        const newUpdatedUser = yield user_model_1.User.findByIdAndUpdate(userId, payload, {
-            new: true,
-            runValidators: true,
-        });
-        return newUpdatedUser;
     }
+    const newUpdatedUser = yield user_model_1.User.findByIdAndUpdate(userId, payload, {
+        new: true,
+        runValidators: true,
+    });
+    return newUpdatedUser;
 });
 const getMe = (myId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(myId).select("-password");

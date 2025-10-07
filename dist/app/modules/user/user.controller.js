@@ -57,6 +57,7 @@ const updateUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(vo
     const verifiedToken = req.user;
     const payload = req.body;
     const user = yield user_service_1.UserServices.updateUser(userId, payload, verifiedToken);
+    console.log("From user===>", user);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,

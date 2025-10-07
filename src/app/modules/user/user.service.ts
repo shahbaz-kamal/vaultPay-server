@@ -182,12 +182,13 @@ const updateUser = async (
     if (payload.agentApprovedAt && requesterRole === Role.USER)
       throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
 
-    const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
-      new: true,
-      runValidators: true,
-    });
-    return newUpdatedUser;
+
   }
+  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+  return newUpdatedUser;
 };
 
 const getMe = async (myId: string) => {
