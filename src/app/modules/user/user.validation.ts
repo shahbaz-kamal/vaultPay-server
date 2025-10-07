@@ -40,12 +40,6 @@ export const updateUserZodSchema = z.object({
     .max(50, "Name should be maximum of 50 characters")
     .optional(),
 
-  password: z
-    .string("Password Must be string")
-    .min(6, "Password must includes at least 6 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .optional(),
   phone: z
     .string("Phone number must be a string")
     .regex(

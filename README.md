@@ -184,9 +184,9 @@ vaultPay-server/
 
 ### **User Routes:**
 
-### 1. Register User
+### 1. Register User (public route)
 
-**POST** `/api/v1/register`
+**POST** `/api/v1/user/register`
 
 #### Request:
 
@@ -235,7 +235,7 @@ vaultPay-server/
 }
 ```
 
-### 2. Get All Users (Accessible to admin and super admin)
+### 2. Get All Users (Accessible to admin and super admin- Private route)
 
 **GET** `/api/v1/user/users`
 
@@ -252,17 +252,17 @@ Supports filtering, sorting, pagination, searching and field filtering.
 - `sort` : sort by a specific field
 - `field` : field to be filtered.
 - `page` : Current page number (default 1)
-- `limit` : Number of data to be showen (default 10) 
+- `limit` : Number of data to be showen (default 10)
 
-### 3. Get logged in User (accessible to logged in user)
+### 3. Get logged in User (accessible to logged in user- Private route)
 
 **GET** `/api/v1/user/me`
 
-### 4. Get user by id (Accessible to admin and super admin)
+### 4. Get user by id (Accessible to admin and super admin- Private route)
 
 **GET** `/api/v1/user/:id`
 
-### 5. Update user (Accessible to admin and super admin)
+### 5. Update user (Accessible to admin and super admin- Private route)
 
 **PATCH** `/api/v1/user/:id`
 
@@ -270,22 +270,138 @@ Supports filtering, sorting, pagination, searching and field filtering.
 
 ```json
 {
-  "name": "John Doe khan",
+  "name": "John Doe khan"
 }
 ```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "user Updated successfully"
+}
+```
+
+### **Auth Routes:**
+
+### 1. Login
+
+**POST** `/api/v1/auth/login`
+
+#### Request:
+
+```json
+{
+  "email": "test1@gmail.com",
+  "password": "123456Aa"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "User logged in successfully",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU0ZDVhZTJjNDk5YjcwMmQwODc0MDkiLCJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzU5ODI3NDQ5LCJleHAiOjE3NTk5MTM4NDl9.T_Vn9JfkjN5xFNy4NKxuzwK4Xa9zWYe7A7qhInQHmLY",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU0ZDVhZTJjNDk5YjcwMmQwODc0MDkiLCJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzU5ODI3NDQ5LCJleHAiOjE3NjI0MTk0NDl9.Vg04YLEuoKbwn6Hf5R4d5k2xap2iWPQ-ho5a6MYeQ9g",
+    "user": {
+      "_id": "68e4d5ae2c499b702d087409",
+      "name": "Mr. Test",
+      "email": "test1@gmail.com",
+      "password": "$2b$10$1wmkQ9gmZ0b.xl45TKlgnO3qcjRxtdnM8eTH.XMvBQvvI.AHn3Y8u",
+      "role": "USER",
+      "phone": null,
+      "profilePicture": null,
+      "address": null,
+      "isDeleted": false,
+      "isActive": "ACTIVE",
+      "isVerified": true,
+      "auths": [
+        {
+          "provider": "credentials",
+          "providerId": "test1@gmail.com"
+        }
+      ],
+      "agentRequestStatus": "NONE",
+      "agentRequestedAt": null,
+      "agentApprovedAt": null,
+      "createdAt": "2025-10-07T08:56:14.732Z",
+      "updatedAt": "2025-10-07T08:56:14.891Z",
+      "wallet": "68e4d5ae2c499b702d08740b"
+    }
+  }
+}
+```
+
+### 2. Reset Password (Private route)
+
+**POST** `/api/v1/auth/reset-password`
+
+#### Request:
+
+```json
+{ 
+  "oldPassword": "123456Aa",
+  "newPassword": "123456aA" 
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "Password changed successfully ",
+  "data": null
+}
+```
+
+### 3. Google Login (Public route)
+
+**POST** `/api/v1/auth/google`
+
+Initiates Google login
+
+### 4. Get New  Access Token with refresh-token (Private route)
+
+**POST** `/api/v1/auth/refresh-token`
+
+
 #### Response:
 
 ```json
 {
     "statusCode": 201,
     "success": true,
-    "message": "user Updated successfully"
+    "message": "new access Token retrieved successfully",
+    "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU0ZDVhZTJjNDk5YjcwMmQwODc0MDkiLCJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzU5ODI4NDkyLCJleHAiOjE3NTk5MTQ4OTJ9.-CPtpXkk3mU-fKd6ta1S7Bvmv-hJQERBTbhtmsIW0H8"
+    }
 }
 ```
 
 
+### 4. Log out 
+
+**POST** `/api/v1/auth/logout`
 
 
+#### Response:
+
+```json
+{
+    "statusCode": 201,
+    "success": true,
+    "message": "logged out",
+    "data": null
+}
+```
 
 ### 2\. Get All Books
 

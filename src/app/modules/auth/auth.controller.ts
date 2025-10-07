@@ -11,6 +11,7 @@ import AppError from "../../errorHelpers/AppError";
 import { createUserTokens } from "../../utils/userToken";
 import { envVars } from "../../config/env";
 import passport from "passport";
+import { JwtPayload } from "jsonwebtoken";
 
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -90,7 +91,7 @@ const logout = catchAsync(
 const resetPassword = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user;
+    const decodedToken = req.user as JwtPayload;
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
     await AuthServices.resetPassword(oldPassword, newPassword, decodedToken);
