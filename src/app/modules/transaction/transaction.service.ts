@@ -213,6 +213,10 @@ const sendMoney = async (
     if (!isSenderExist.isVerified)
       throw new AppError(401, "Please verify your account to send money");
     if (isSenderExist.isDeleted) throw new AppError(401, "You are deleted");
+    if (isSenderExist.role !== Role.USER)
+      throw new AppError(401, "Only Users can initiate send money");
+    if (isSenderExist.role !== Role.USER)
+      throw new AppError(401, "Only Users can initiate send money");
 
     //checking reciever verificTION
     const isReceiverExist = await User.findOne({
@@ -225,7 +229,8 @@ const sendMoney = async (
       throw new AppError(401, "Receiver is not verified");
     if (isReceiverExist.isDeleted)
       throw new AppError(401, "Receiver is deleted");
-
+    if (isSenderExist.role !== Role.USER)
+      throw new AppError(401, "Only Users can receive send money");
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.SEND_MONEY;
     const transactionSource = TRANSACTION_SOURCE.USER;

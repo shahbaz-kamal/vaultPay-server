@@ -14,13 +14,13 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 
 ###
 
-[book-nest-olive.vercel.app](https://book-nest-olive.vercel.app)
+[Click Here](https://vault-pay-server.vercel.app)
 
-<!-- ###
-<!-- ## 👨‍💼 Admin Info
-###
-<p align="left">Admin Email: shahbaz@kamal.com</p>
-<p align="left">Admin Password: 123456Aa</p> -->
+## 👨‍💼Super Admin Info
+
+- **Super Admin Email** — super@gmail.com
+- **Super Admin Password** — 123456Aa
+
 
 ## ✨ Features:
 
