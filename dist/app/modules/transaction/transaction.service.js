@@ -168,6 +168,10 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
             throw new AppError_1.default(401, "Please verify your account to send money");
         if (isSenderExist.isDeleted)
             throw new AppError_1.default(401, "You are deleted");
+        if (isSenderExist.role !== user_interface_1.Role.USER)
+            throw new AppError_1.default(401, "Only Users can initiate send money");
+        if (isSenderExist.role !== user_interface_1.Role.USER)
+            throw new AppError_1.default(401, "Only Users can initiate send money");
         //checking reciever verificTION
         const isReceiverExist = yield user_model_1.User.findOne({
             email: payload.receiverEmail,
@@ -180,6 +184,8 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
             throw new AppError_1.default(401, "Receiver is not verified");
         if (isReceiverExist.isDeleted)
             throw new AppError_1.default(401, "Receiver is deleted");
+        if (isSenderExist.role !== user_interface_1.Role.USER)
+            throw new AppError_1.default(401, "Only Users can receive send money");
         const transactionId = (0, generateTransactionId_1.generateTransactionId)();
         const transactionType = transaction_interface_1.TRANSACTION_TYPE.SEND_MONEY;
         const transactionSource = transaction_interface_1.TRANSACTION_SOURCE.USER;

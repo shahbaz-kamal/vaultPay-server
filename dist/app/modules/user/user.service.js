@@ -128,6 +128,10 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
             }
         }
     }
+    if (decodedToken.role === user_interface_1.Role.USER || decodedToken.role === user_interface_1.Role.AGENT) {
+        if (userId !== decodedToken.userId)
+            throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You are not authorized");
+    }
     if (payload.password) {
         payload.password = yield bcryptjs_1.default.hash(payload.password, Number(env_1.envVars.BCRYPT_SALT_ROUND));
         if (isUserExist.auths.length) {

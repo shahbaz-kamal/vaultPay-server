@@ -13,13 +13,13 @@ export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {
     res.cookie("accessToken", tokenInfo.accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "none" : "strict",
+      sameSite: isProduction ? "none" : "lax",
     });
 
   if (tokenInfo.refreshToken)
     res.cookie("refreshToken", tokenInfo.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "none" : "strict",
+      sameSite: isProduction ? "none" : "lax",
     });
 };

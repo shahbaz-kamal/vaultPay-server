@@ -17,12 +17,11 @@ const app_1 = require("./app");
 const env_1 = require("./app/config/env");
 const seedSuperAdmin_1 = require("./app/utils/seedSuperAdmin");
 const seedSystemInformation_1 = require("./app/utils/seedSystemInformation");
-let server;
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(env_1.envVars.DB_URL);
         console.log("🍃 Connected to mongoose");
-        server = app_1.app.listen(env_1.envVars.PORT, () => {
+        app_1.app.listen(env_1.envVars.PORT, () => {
             console.log(`🔐 Vault pay is running on port ${env_1.envVars.PORT}`);
         });
     }

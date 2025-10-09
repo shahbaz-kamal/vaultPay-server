@@ -11,18 +11,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAuthCookie = void 0;
 const env_1 = require("../config/env");
+const isProduction = env_1.envVars.NODE_ENV === "production";
 const setAuthCookie = (res, tokenInfo) => __awaiter(void 0, void 0, void 0, function* () {
     if (tokenInfo.accessToken)
         res.cookie("accessToken", tokenInfo.accessToken, {
-            httpOnly: true,
-            secure: env_1.envVars.NODE_ENV === "production",
-            sameSite: "none",
+            // httpOnly: true,
+            // secure: isProduction,
+            // sameSite: isProduction ? "none" : "lax",
+            httpOnly: true, // not accessible via JS
+            secure: isProduction, // must be true in production
+            sameSite: "none", // cross-site cookies require "none"
+            maxAge: 1000 * 60 * 60 * 24, // 1 day
+            path: "/",
         });
     if (tokenInfo.refreshToken)
         res.cookie("refreshToken", tokenInfo.refreshToken, {
-            httpOnly: true,
-            secure: env_1.envVars.NODE_ENV === "production",
-            sameSite: "none",
+            // httpOnly: true,
+            // secure: isProduction,
+            // sameSite: isProduction ? "none" : "lax",
+            httpOnly: true, // not accessible via JS
+            secure: isProduction, // must be true in production
+            sameSite: "none", // cross-site cookies require "none"
+            maxAge: 1000 * 60 * 60 * 24, // 1 day
+            path: "/",
         });
 });
 exports.setAuthCookie = setAuthCookie;
