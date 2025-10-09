@@ -27,15 +27,28 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 - **Role-Based Access Control** — Separate functionalities for **Admin**, **Super Admin**, **Agent**, and **User** roles.
 - **Secure Authentication** — Implemented using **JWT** and **BcryptJS** for safe login and password protection.
 - **Add Balance via SSLCommerz** — Users can easily add money to their wallets using the **SSLCommerz payment gateway**. Also users can send money to other users.
-- **Deposit, Withdraw & Transfer** — Real-time transaction system for seamless fund management.
+- **Cash out, send money and cash in** — Real-time transaction system for seamless fund management.
 - **Admin Dashboard** — Admins can monitor total balance, manage commissions, and set transaction charges.
 - **Agent Management** — Agents can process cash in and assist users with transactions.
 - **Data Validation** — Robust input validation using **Zod** to ensure clean and error-free data.
 - **Error Handling** — Centralized error management with descriptive responses for smooth debugging.
 - **TypeScript Support** — Strongly typed backend ensuring better maintainability and scalability.
 - **Database Management** — Built with **MongoDB (Mongoose)** for flexible and efficient data modeling.
+- **Users can**
+  - Add Money to their wallet from SSLCommerze   
+  - Initiates cash out to agents to withdraw.  
+- **Agents can**
+  - Add Money to their wallet from SSLCommerze.  
+  - Initiates cash in to user wallet. (user will receive money from agent)  
+  - Initiates cash out to agents to withdraw.  
+- **Admins can** 
+  - View all transactions.
+  - Update all users profiles certain fields. 
+- **Super Admin can**
+  - View all transactions.
+  - Update users profiles as well as admin's profile . 
 
-###
+
 
 ## 🛠 Technology Used
 

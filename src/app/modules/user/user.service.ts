@@ -148,6 +148,10 @@ const updateUser = async (
       }
     }
   }
+
+if(decodedToken.role===Role.USER ||  decodedToken.role===Role.AGENT){
+if (userId!==decodedToken.userId) throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
   if (payload.password) {
     payload.password = await bcryptJs.hash(
       payload.password,

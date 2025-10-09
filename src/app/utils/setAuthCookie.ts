@@ -6,18 +6,20 @@ export interface TokenInfo {
   refreshToken?: string;
 }
 
+const isProduction = envVars.NODE_ENV === "production";
+
 export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {
   if (tokenInfo.accessToken)
     res.cookie("accessToken", tokenInfo.accessToken, {
       httpOnly: true,
-      secure: envVars.NODE_ENV === "production",
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
     });
 
   if (tokenInfo.refreshToken)
     res.cookie("refreshToken", tokenInfo.refreshToken, {
       httpOnly: true,
-      secure: envVars.NODE_ENV === "production",
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
     });
 };

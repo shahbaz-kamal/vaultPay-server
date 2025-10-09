@@ -15,7 +15,7 @@ export const app = express();
 
 //required constatnts for middlewares
 
-// middlewares
+//// middlewares
 app.use(
   expressSession({
     secret: envVars.EXPRESS_SESSION_SECRET,
@@ -23,16 +23,21 @@ app.use(
     saveUninitialized: false,
   })
 );
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 app.set("trust proxy", 1);
-app.use(cookieParser());
 app.use(express.json());
 
-app.use(cors({ origin: envVars.FRONTEND_URL, credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://vault-pay-server.vercel.app"],
+    credentials: true,
+  })
+);
 app.use(logger);
 
-// routing middlewares
+//// routing middlewares
 app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
