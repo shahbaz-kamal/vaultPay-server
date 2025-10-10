@@ -6,7 +6,7 @@
 
 <h1 align="left"> 🏦 VaultPay - payment system</h1>
 
-**VaultPay** is a secure digital wallet and payment platform built using **Express**, **TypeScript**, and **MongoDB (Mongoose)**. It enables users to **deposit**, **withdraw**, and **transfer** money securely with real-time transaction processing. The system includes **role-based access control** with **Admin**, **Agent**, and **User** roles — each having distinct privileges.
+**VaultPay** is a secure digital wallet and payment platform built using **Express**, **TypeScript**, and **MongoDB (Mongoose)**. It enables users to **add**, **withdraw**, and **transfer** money securely with real-time transaction processing. The system includes **role-based access control** with **Admin**, **Agent**, and **User** roles — each having distinct privileges.
 
 Users can **add balance to their wallets via SSLCommerz**, a reliable online payment gateway ensuring safe and verified transactions. Admins can manage **system balance**, **transaction charges**, and **commissions**. The platform is powered by **JWT authentication**, **Zod validation**, and **BcryptJS encryption** to ensure robust security and data integrity across all operations.
 
@@ -16,10 +16,14 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 
 [Click Here](https://vault-pay-server.vercel.app)
 
-## 👨‍💼Super Admin Info
+## 👨‍💼Login Info
 
 - **Super Admin Email** — super@gmail.com
 - **Super Admin Password** — 123456Aa
+- **Admin Email** — admin@gmail.com
+- **Admin Password** — 123456Aa
+- **User Email** — admin@gmail.com
+- **User Password** — 123456Aa
 
 
 ## ✨ Features:
@@ -36,11 +40,11 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 - **Database Management** — Built with **MongoDB (Mongoose)** for flexible and efficient data modeling.
 - **Users can**
   - Add Money to their wallet from SSLCommerze   
+  - Send money to other users with a transaction charge. 
   - Initiates cash out to agents to withdraw.  
 - **Agents can**
   - Add Money to their wallet from SSLCommerze.  
   - Initiates cash in to user wallet. (user will receive money from agent)  
-  - Initiates cash out to agents to withdraw.  
 - **Admins can** 
   - View all transactions.
   - Update all users profiles certain fields. 
