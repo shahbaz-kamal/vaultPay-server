@@ -7,11 +7,13 @@ import {
 } from "passport-google-oauth20";
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
-import { Role } from "../modules/user/user.interface";
+import { IsActive, Role } from "../modules/user/user.interface";
 import { Strategy as LocalStrategy } from "passport-local";
 
 import bcryptJs from "bcryptjs";
 import { Wallet } from "../modules/wallet/wallet.model";
+import httpStatus from "http-status-codes";
+import AppError from "../errorHelpers/AppError";
 
 passport.use(
   new LocalStrategy(
@@ -27,6 +29,16 @@ passport.use(
           return done(null, false, {
             message: `User having email:${email}, does not exist`,
           });
+
+        if (!isUserExist.isVerified) return done("User is Not Verified");
+
+        if (
+          isUserExist.isActive === IsActive.BLOCKED ||
+          isUserExist.isActive === IsActive.INACTIVE
+        )
+          return done(`User is ${isUserExist.isActive}`);
+        if (isUserExist.isDeleted) return done("User is deleted");
+
         const isGoogleAuthenticated = isUserExist.auths.some(
           (providerObject) => providerObject.provider === "google"
         );
@@ -75,9 +87,20 @@ passport.use(
           session.endSession();
           return done(null, false, { message: "No Email Found" });
         }
-        let user = await User.findOne({ email }).session(session);
+        let isUserExist = await User.findOne({ email }).session(session);
 
-        if (!user) {
+        if (isUserExist && !isUserExist.isVerified)
+         return done(null, false, { message: "User is Not Verified" });
+
+        if (
+          isUserExist &&
+          (isUserExist.isActive === IsActive.BLOCKED ||
+            isUserExist.isActive === IsActive.INACTIVE)
+        )
+        return  done(null, false, { message: `User is ${isUserExist.isActive}` });
+        if (isUserExist && isUserExist.isDeleted)
+         return done(null, false, { message: "User is deleted" });
+        if (!isUserExist) {
           const newUser = await User.create(
             [
               {
@@ -91,16 +114,18 @@ passport.use(
             ],
             { session }
           );
-          user = newUser[0];
+          isUserExist = newUser[0];
           // await newUser.save({ session });
-          const wallet=await Wallet.create([{ user: user._id }], { session });
-          user.wallet = wallet[0]._id;
-          await user.save({ session });
+          const wallet = await Wallet.create([{ user: isUserExist._id }], {
+            session,
+          });
+          isUserExist.wallet = wallet[0]._id;
+          await isUserExist.save({ session });
         }
         await session.commitTransaction();
 
         session.endSession();
-        return done(null, user);
+        return done(null, isUserExist);
       } catch (error) {
         console.log("Google strategy error", error);
         await session.abortTransaction();

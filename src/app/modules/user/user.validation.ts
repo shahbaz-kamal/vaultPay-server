@@ -33,6 +33,7 @@ export const createUserZodSchema = z.object({
     })
     .optional(),
 });
+
 export const updateUserZodSchema = z.object({
   name: z
     .string("Name is required")
@@ -47,7 +48,7 @@ export const updateUserZodSchema = z.object({
       "Invalid Bangladeshi phone number format"
     )
     .optional(),
-  profilePicture: z.string("Photo must be string").optional(),
+  profilePicture: z.string("Photo link must be string").optional(),
   address: z
     .string("Address must be string")
     .max(200, {
