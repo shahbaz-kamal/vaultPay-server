@@ -15,25 +15,15 @@ const isProduction = env_1.envVars.NODE_ENV === "production";
 const setAuthCookie = (res, tokenInfo) => __awaiter(void 0, void 0, void 0, function* () {
     if (tokenInfo.accessToken)
         res.cookie("accessToken", tokenInfo.accessToken, {
-            // httpOnly: true,
-            // secure: isProduction,
-            // sameSite: isProduction ? "none" : "lax",
-            httpOnly: true, // not accessible via JS
-            secure: isProduction, // must be true in production
-            sameSite: "none", // cross-site cookies require "none"
-            maxAge: 1000 * 60 * 60 * 24, // 1 day
-            path: "/",
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
         });
     if (tokenInfo.refreshToken)
         res.cookie("refreshToken", tokenInfo.refreshToken, {
-            // httpOnly: true,
-            // secure: isProduction,
-            // sameSite: isProduction ? "none" : "lax",
-            httpOnly: true, // not accessible via JS
-            secure: isProduction, // must be true in production
-            sameSite: "none", // cross-site cookies require "none"
-            maxAge: 1000 * 60 * 60 * 24, // 1 day
-            path: "/",
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
         });
 });
 exports.setAuthCookie = setAuthCookie;
