@@ -19,29 +19,6 @@ const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const userToken_1 = require("../../utils/userToken");
 const env_1 = require("../../config/env");
-// const credentialsLogin = async (payload: Partial<IUser>) => {
-//   const { email, password, ...rest } = payload;
-//   const isUserExist = await User.findOne({ email });
-//   if (!isUserExist)
-//     throw new AppError(
-//       httpStatus.BAD_REQUEST,
-//       `User having email:${email}, does not exist`
-//     );
-//   const isPasswordMatched = await bcryptJs.compare(
-//     password as string,
-//     isUserExist.password as string
-//   );
-//   if (!isPasswordMatched)
-//     throw new AppError(httpStatus.BAD_REQUEST, "Incorrect password");
-//   const userTokens = await createUserTokens(isUserExist);
-//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//   const { password: pass, ...rests } = isUserExist.toObject();
-//   return {
-//     accessToken: userTokens.accessToken,
-//     refreshToken: userTokens.refreshToken,
-//     user: { ...rests },
-//   };
-// };
 const getNewAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     const newAccessToken = yield (0, userToken_1.createNewAccessTokenWithRefreshToken)(refreshToken);
     return { accessToken: newAccessToken };
