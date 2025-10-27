@@ -7,6 +7,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
+import { IUser } from "./user.interface";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -59,9 +60,10 @@ const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
     const verifiedToken = req.user as JwtPayload;
-    const payload = req.body;
+    const payload:Partial<IUser> = {...req.body,profilePicture:req.file?.path};
     const user = await UserServices.updateUser(userId, payload, verifiedToken);
-    console.log("From user===>",user)
+
+    console.log("From file upload===>", { file: req.file, body: payload });
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,

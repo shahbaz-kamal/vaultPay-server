@@ -30,6 +30,12 @@ interface EnvVars {
     FAIL_BACKEND_URL: string;
     CANCEL_BACKEND_URL: string;
   };
+  CLOUDINARY:{
+    CLOUD_NAME:string;
+    API_KEY:string;
+    API_SECRET:string;
+
+  }
 }
 
 const loadEnvironmentVariables = (): EnvVars => {
@@ -60,6 +66,9 @@ const loadEnvironmentVariables = (): EnvVars => {
     "SSL_SUCCESS_BACKEND_URL",
     "SSL_FAIL_BACKEND_URL",
     "SSL_CANCEL_BACKEND_URL",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
   ];
 
   requiredVariables.forEach((key) => {
@@ -98,6 +107,11 @@ const loadEnvironmentVariables = (): EnvVars => {
       FAIL_BACKEND_URL: process.env.SSL_FAIL_BACKEND_URL as string,
       CANCEL_BACKEND_URL: process.env.SSL_CANCEL_BACKEND_URL as string,
     },
+    CLOUDINARY:{
+      CLOUD_NAME:process.env.CLOUDINARY_CLOUD_NAME as string,
+      API_KEY:process.env.CLOUDINARY_API_KEY as string,
+      API_SECRET:process.env.CLOUDINARY_API_SECRET as string,
+    }
   };
 };
 export const envVars: EnvVars = loadEnvironmentVariables();

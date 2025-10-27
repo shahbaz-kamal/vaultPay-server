@@ -4,6 +4,7 @@ import { UserControllers } from "./user.controller";
 import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { Role } from "./user.interface";
+import { multerUpload } from "../../config/multer.config";
 
 const router = Router();
 
@@ -28,8 +29,9 @@ router.get(
 
 router.patch(
   "/:id",
-  validateRequest(updateUserZodSchema),
   checkAuth(...Object.values(Role)),
+  multerUpload.single("file"),
+   validateRequest(updateUserZodSchema),
   UserControllers.updateUser
 );
 
