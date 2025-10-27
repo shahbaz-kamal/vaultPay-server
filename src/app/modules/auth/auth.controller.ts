@@ -1,3 +1,4 @@
+import { statusCode } from "http-status-codes";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
@@ -13,30 +14,28 @@ import { envVars } from "../../config/env";
 import passport from "passport";
 import { JwtPayload } from "jsonwebtoken";
 
-const credentialsLogin = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // const loginInfo = await AuthServices.credentialsLogin(req.body);
-    passport.authenticate("local", async (error: any, user: any, info:any) => {
-      if (error) return next(new AppError(401, error));
+const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  // const loginInfo = await AuthServices.credentialsLogin(req.body);
+  passport.authenticate("local", async (error: any, user: any, info: any) => {
+    if (error) return next(new AppError(httpStatus.BAD_REQUEST || 401, error));
 
-      if (!user) return next(new AppError(401, info?.message));
+    if (!user) return next(new AppError(httpStatus.BAD_REQUEST || 401, info?.message));
 
-      const userTokens = await createUserTokens(user);
-      delete user.toObject().password;
-      setAuthCookie(res, userTokens);
-      sendResponse(res, {
-        success: true,
-        message: "User logged in successfully",
-        statusCode: httpStatus.CREATED,
-        data: {
-          accessToken: userTokens.accessToken,
-          refreshToken: userTokens.refreshToken,
-          user,
-        },
-      });
-    })(req, res, next);
-  }
-);
+    const userTokens = await createUserTokens(user);
+    delete user.toObject().password;
+    setAuthCookie(res, userTokens);
+    sendResponse(res, {
+      success: true,
+      message: "User logged in successfully",
+      statusCode: httpStatus.CREATED,
+      data: {
+        accessToken: userTokens.accessToken,
+        refreshToken: userTokens.refreshToken,
+        user,
+      },
+    });
+  })(req, res, next);
+});
 
 const getNewAccessToken = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,15 +43,10 @@ const getNewAccessToken = catchAsync(
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "No refresh token recieved from cookies"
-      );
+      throw new AppError(httpStatus.BAD_REQUEST, "No refresh token recieved from cookies");
     }
     //   const user = await UserServices.createUser(req.body);
-    const tokenInfo = await AuthServices.getNewAccessToken(
-      refreshToken as string
-    );
+    const tokenInfo = await AuthServices.getNewAccessToken(refreshToken as string);
     setAuthCookie(res, tokenInfo);
     res.cookie("accessToken", tokenInfo.accessToken, {
       httpOnly: true,
@@ -88,28 +82,14 @@ const logout = catchAsync(
     });
   }
 );
-const resetPassword = catchAsync(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const newPassword = req.body.newPassword;
-    const oldPassword = req.body.oldPassword;
-    await AuthServices.resetPassword(oldPassword, newPassword, decodedToken);
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.CREATED,
-      message: "Password changed successfully ",
-      data: null,
-    });
-  }
-);
+
 const setPassword = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user as JwtPayload;
     const password = req.body.password;
-    
-    await AuthServices.setPassword(decodedToken.userId,password);
+
+    await AuthServices.setPassword(decodedToken.userId, password);
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
@@ -133,6 +113,35 @@ const changePassword = catchAsync(
     });
   }
 );
+
+const resetPassword = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user;
+const payload=req.body
+    await AuthServices.resetPassword(payload, decodedToken as JwtPayload);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Password changed successfully ",
+      data: null,
+    });
+  }
+);
+const forgotPassword = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    await AuthServices.forgotPassword(email);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Email sent successfully ",
+      data: null,
+    });
+  }
+);
+
 const googleCallbackController = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
@@ -160,5 +169,8 @@ export const AuthControllers = {
   getNewAccessToken,
   logout,
   resetPassword,
-  googleCallbackController,changePassword,setPassword
+  googleCallbackController,
+  changePassword,
+  setPassword,
+  forgotPassword,
 };

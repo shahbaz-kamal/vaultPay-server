@@ -30,12 +30,18 @@ interface EnvVars {
     FAIL_BACKEND_URL: string;
     CANCEL_BACKEND_URL: string;
   };
-  CLOUDINARY:{
-    CLOUD_NAME:string;
-    API_KEY:string;
-    API_SECRET:string;
-
-  }
+  CLOUDINARY: {
+    CLOUD_NAME: string;
+    API_KEY: string;
+    API_SECRET: string;
+  };
+  EMAIL_SENDER: {
+    SMTP_HOST: string;
+    SMTP_PORT: string;
+    SMTP_USER: string;
+    SMTP_PASS: string;
+    SMTP_FROM: string;
+  };
 }
 
 const loadEnvironmentVariables = (): EnvVars => {
@@ -69,6 +75,11 @@ const loadEnvironmentVariables = (): EnvVars => {
     "CLOUDINARY_CLOUD_NAME",
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASS",
+    "SMTP_FROM",
   ];
 
   requiredVariables.forEach((key) => {
@@ -82,11 +93,9 @@ const loadEnvironmentVariables = (): EnvVars => {
     NODE_ENV: process.env.NODE_ENV as "development" | "production",
     BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND as string,
     JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET as string,
-    JWT_ACCESS_TOKEN_EXPIRES_IN: process.env
-      .JWT_ACCESS_TOKEN_EXPIRES_IN as string,
+    JWT_ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN as string,
     JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET as string,
-    JWT_REFRESH_TOKEN_EXPIRES_IN: process.env
-      .JWT_REFRESH_TOKEN_EXPIRES_IN as string,
+    JWT_REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN as string,
     SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL as string,
     SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD as string,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
@@ -107,11 +116,18 @@ const loadEnvironmentVariables = (): EnvVars => {
       FAIL_BACKEND_URL: process.env.SSL_FAIL_BACKEND_URL as string,
       CANCEL_BACKEND_URL: process.env.SSL_CANCEL_BACKEND_URL as string,
     },
-    CLOUDINARY:{
-      CLOUD_NAME:process.env.CLOUDINARY_CLOUD_NAME as string,
-      API_KEY:process.env.CLOUDINARY_API_KEY as string,
-      API_SECRET:process.env.CLOUDINARY_API_SECRET as string,
-    }
+    CLOUDINARY: {
+      CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
+      API_KEY: process.env.CLOUDINARY_API_KEY as string,
+      API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
+    },
+    EMAIL_SENDER: {
+      SMTP_HOST: process.env.SMTP_HOST as string,
+      SMTP_PORT: process.env.SMTP_PORT as string,
+      SMTP_USER: process.env.SMTP_USER as string,
+      SMTP_PASS: process.env.SMTP_PASS as string,
+      SMTP_FROM: process.env.SMTP_FROM as string,
+    },
   };
 };
 export const envVars: EnvVars = loadEnvironmentVariables();
