@@ -9,6 +9,7 @@ import { handleDuplicateError } from "../helpers/handleDuplicateError";
 import { handleCastError } from "../helpers/handleCastError";
 import { handleZodError } from "../helpers/handleZodError";
 import { handleValidationError } from "../helpers/handleValidationError";
+import { deleteFromCloudinary } from "../config/cloudinary.config";
 
 export const globalErrorHandler = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +21,10 @@ export const globalErrorHandler = async (
   if (envVars.NODE_ENV === "development") {
     console.log("From error===>", error);
   }
+if(req.file) {
+  await deleteFromCloudinary(req.file.path)
+}
+
   let statusCode = 500;
   let message = `Something went Wrong!!`;
   let errorSource: TErrorSources[] = [];

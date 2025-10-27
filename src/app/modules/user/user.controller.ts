@@ -8,6 +8,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
 import { IUser } from "./user.interface";
+import AppError from "../../errorHelpers/AppError";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -61,6 +62,8 @@ const updateUser = catchAsync(
     const userId = req.params.id;
     const verifiedToken = req.user as JwtPayload;
     const payload:Partial<IUser> = {...req.body,profilePicture:req.file?.path};
+    console.log("Checking cloudinary. FIle has been uploaded to cloudinary\n",payload)
+    // throw new AppError(401,"Fake Error")
     const user = await UserServices.updateUser(userId, payload, verifiedToken);
 
     console.log("From file upload===>", { file: req.file, body: payload });
