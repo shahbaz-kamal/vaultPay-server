@@ -103,6 +103,36 @@ const resetPassword = catchAsync(
     });
   }
 );
+const setPassword = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const password = req.body.password;
+    
+    await AuthServices.setPassword(decodedToken.userId,password);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Password has been set successfully ",
+      data: null,
+    });
+  }
+);
+const changePassword = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const newPassword = req.body.newPassword;
+    const oldPassword = req.body.oldPassword;
+    await AuthServices.changePassword(oldPassword, newPassword, decodedToken);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Password changed successfully ",
+      data: null,
+    });
+  }
+);
 const googleCallbackController = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
@@ -130,5 +160,5 @@ export const AuthControllers = {
   getNewAccessToken,
   logout,
   resetPassword,
-  googleCallbackController,
+  googleCallbackController,changePassword,setPassword
 };

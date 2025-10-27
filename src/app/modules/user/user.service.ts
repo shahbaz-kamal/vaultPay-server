@@ -17,6 +17,7 @@ import { Wallet } from "../wallet/wallet.model";
 import { searchableFields } from "../../constants";
 
 import { QueryBuilder } from "../../utils/QueryBuilder";
+import { deleteFromCloudinary } from "../../config/cloudinary.config";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();
@@ -192,6 +193,9 @@ if (userId!==decodedToken.userId) throw new AppError(httpStatus.FORBIDDEN, "You 
     new: true,
     runValidators: true,
   });
+
+if(payload.profilePicture && isUserExist.profilePicture) await deleteFromCloudinary(isUserExist.profilePicture);
+
   return newUpdatedUser;
 };
 
