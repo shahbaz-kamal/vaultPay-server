@@ -1,9 +1,9 @@
-import { User } from "./../user/user.model";
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { User } from "./../user/user.model";
 import AppError from "../../errorHelpers/AppError";
 import { calculateCashInCharge, calculateCashOutCharge, calculateSendMoney } from "../../utils/calculateTransactionFee";
 import { generateTransactionId } from "../../utils/generateTransactionId";
-import { IUser, Role } from "../user/user.interface";
+import { Role } from "../user/user.interface";
 
 import { Wallet } from "../wallet/wallet.model";
 import { ITransaction, TRANSACTION_SOURCE, TRANSACTION_STATUS, TRANSACTION_TYPE } from "./transaction.interface";
@@ -14,10 +14,11 @@ import { SSLService } from "../sslCommerz/sslCommerze.service";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { searchableFields } from "../../constants";
 import { JwtPayload } from "jsonwebtoken";
-import { generatePdf, IInvoiceData } from "../../utils/invoice";
+
 import { generateInvoiceId } from "../../utils/generateInvoiceId";
-import { sendEmail } from "../../utils/sendEmail";
-import { uploadBufferToCloudinary } from "../../config/cloudinary.config";
+
+import { handleInvoiceSendAndUpload } from "../../utils/handleInvoiceSendAndUpload";
+import { IInvoiceData } from "../../utils/invoice";
 
 const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
@@ -140,30 +141,17 @@ const addMoneySuccess = async (query: Record<string, string>) => {
       notes: updatedTransaction.notes || "",
     };
 
-    const pdfBuffer = await generatePdf(invoiceData);
-    const cloudinaryResult = (await uploadBufferToCloudinary(pdfBuffer, `invoice-${invoiceData.invoiceId}`)) as any;
-    console.log("cloudinary result:", cloudinaryResult);
+    // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+    // invoice is uploaded and saved to cloudinary
 
-    await sendEmail({
-      to: isReceiverExist.email,
-      subject: "Your Transaction Invoice",
-      templateName: "invoice",
-      templateData: invoiceData,
-      attachments: [
-        {
-          fileName: "invoice.pdf",
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        },
-      ],
-    });
+    const handleInvoiceResult = await handleInvoiceSendAndUpload(invoiceData, 1);
 
     updatedTransaction = await Transaction.findOneAndUpdate(
       {
         transactionId: query.transactionId,
       },
       {
-        invoiceUrl: cloudinaryResult.secure_url,
+        invoiceUrl: handleInvoiceResult.invoiceUrl,
       },
       { new: true, runValidators: true, session }
     );
@@ -175,6 +163,12 @@ const addMoneySuccess = async (query: Record<string, string>) => {
     console.log(error);
     session.abortTransaction();
     session.endSession();
+    try {
+      await Transaction.findOneAndDelete({ transactionId: query.transactionId });
+    } catch (deleteError) {
+      console.error("Failed to delete transaction after rollback", deleteError);
+      // You might alert or log further here
+    }
   }
 };
 
@@ -297,11 +291,44 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
       { session }
     );
 
-    const updatedTransaction = await Transaction.findByIdAndUpdate(
+    let updatedTransaction = await Transaction.findByIdAndUpdate(
       transaction[0]._id,
       { status: TRANSACTION_STATUS.COMPLETED },
       { runValidators: true, new: true, session }
     );
+    if (!updatedTransaction) throw new AppError(401, "Transaction not found");
+    const invoiceData: IInvoiceData = {
+      invoiceId: generateInvoiceId(),
+      transactionId: updatedTransaction.transactionId,
+      senderName:isSenderExist.name,
+      senderEmail: isSenderExist.email,
+      transactionDate: updatedTransaction.createdAt as Date,
+      receiverName: isReceiverExist.name,
+      receiverEmail: isReceiverExist.email,
+      transactionType: "Send Money",
+      totalAmount: Number(updatedTransaction.amount),
+      status: updatedTransaction.status,
+      notes: updatedTransaction.notes || "",
+    };
+
+    // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+    // invoice is uploaded and saved to cloudinary
+
+    const handleInvoiceResult = await handleInvoiceSendAndUpload(invoiceData, 2);
+
+    updatedTransaction = await Transaction.findOneAndUpdate(
+      {
+        transactionId: updatedTransaction.transactionId,
+      },
+      {
+        invoiceUrl: handleInvoiceResult.invoiceUrl,
+      },
+      { new: true, runValidators: true, session }
+    );
+   
+
+    // return { success: true, message: "Payment Completed successfully" };
+
     await session.commitTransaction();
     session.endSession();
 
@@ -314,6 +341,9 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
     throw new AppError(401, error.message);
   }
 };
+
+
+
 const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
   session.startTransaction();
@@ -404,18 +434,52 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
     const currentSystemBalance = system?.balance as number;
     const newSystemBalance = currentSystemBalance + systemProfit;
     await System.findByIdAndUpdate(system?._id, { balance: newSystemBalance }, { session });
-    const newTransaction = await Transaction.findByIdAndUpdate(
+    let updatedTransaction = await Transaction.findByIdAndUpdate(
       transaction[0]._id,
       {
         status: TRANSACTION_STATUS.COMPLETED,
       },
       { runValidators: true, new: true, session }
     );
+    if (!updatedTransaction) throw new AppError(401, "Transaction not found");
+
+    const invoiceData: IInvoiceData = {
+      invoiceId: generateInvoiceId(),
+      transactionId: updatedTransaction.transactionId,
+      senderName:isSenderExist.name,
+      senderEmail: isSenderExist.email,
+      transactionDate: updatedTransaction.createdAt as Date,
+      receiverName: isReceiverExist.name,
+      receiverEmail: isReceiverExist.email,
+      transactionType: "Cash Out",
+      totalAmount: Number(updatedTransaction.amount),
+      status: updatedTransaction.status,
+      notes: updatedTransaction.notes || "",
+    };
+
+    // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+    // invoice is uploaded and saved to cloudinary
+
+    const handleInvoiceResult = await handleInvoiceSendAndUpload(invoiceData, 2);
+
+    updatedTransaction = await Transaction.findOneAndUpdate(
+      {
+        transactionId: updatedTransaction.transactionId,
+      },
+      {
+        invoiceUrl: handleInvoiceResult.invoiceUrl,
+      },
+      { new: true, runValidators: true, session }
+    );
+
+
+
+
 
     await session.commitTransaction();
     session.endSession();
 
-    return newTransaction;
+    return updatedTransaction;
   } catch (error: any) {
     console.log(error);
     await session.abortTransaction();
@@ -452,6 +516,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     const transactionSource = TRANSACTION_SOURCE.AGENT;
     const transactionStatus = TRANSACTION_STATUS.PENDING;
     const transactionFee = await calculateCashInCharge();
+    console.log("From Transaction Fee",transactionFee)
 
     payload.transactionId = transactionId;
     payload.type = transactionType;
@@ -463,13 +528,11 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     payload.status = transactionStatus;
     payload.senderId = isSenderExist._id;
     payload.receiverId = isReceiverExist._id;
-    // payload.agentCommission = agentCommission;
+   
     const transaction = await Transaction.create([payload], { session });
 
     const amount = Number(payload.amount);
-    // if (isNaN(amount) || amount <= 0) {
-    //   throw new AppError(400, "Invalid amount");
-    // }
+ 
 
     const senderWallet = await Wallet.findById(isSenderExist.wallet, null, {
       session,
@@ -490,6 +553,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     }
 
     const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + transactionFee);
+  
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -508,17 +572,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
       { session }
     );
 
-    //updating system balance
-    // const system = await System.findOne({}, null, { session });
-
-    // const currentSystemBalance = system?.balance as number;
-    // const newSystemBalance = currentSystemBalance + systemProfit;
-    // await System.findByIdAndUpdate(
-    //   system?._id,
-    //   { balance: newSystemBalance },
-    //   { session }
-    // );
-    const newTransaction = await Transaction.findByIdAndUpdate(
+    let updatedTransaction = await Transaction.findByIdAndUpdate(
       transaction[0]._id,
       {
         status: TRANSACTION_STATUS.COMPLETED,
@@ -526,10 +580,41 @@ const cashIn = async (payload: Partial<ITransaction>) => {
       { runValidators: true, new: true, session }
     );
 
+    if (!updatedTransaction) throw new AppError(401, "Transaction not found");
+
+    const invoiceData: IInvoiceData = {
+      invoiceId: generateInvoiceId(),
+      transactionId: updatedTransaction.transactionId,
+      senderName:isSenderExist.name,
+      senderEmail: isSenderExist.email,
+      transactionDate: updatedTransaction.createdAt as Date,
+      receiverName: isReceiverExist.name,
+      receiverEmail: isReceiverExist.email,
+      transactionType: "Cash In",
+      totalAmount: Number(updatedTransaction.amount),
+      status: updatedTransaction.status,
+      notes: updatedTransaction.notes || "",
+    };
+
+    // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+    // invoice is uploaded and saved to cloudinary
+
+    const handleInvoiceResult = await handleInvoiceSendAndUpload(invoiceData, 2);
+
+    updatedTransaction = await Transaction.findOneAndUpdate(
+      {
+        transactionId: updatedTransaction.transactionId,
+      },
+      {
+        invoiceUrl: handleInvoiceResult.invoiceUrl,
+      },
+      { new: true, runValidators: true, session }
+    );
+
     await session.commitTransaction();
     session.endSession();
 
-    return newTransaction;
+    return updatedTransaction;
   } catch (error: any) {
     console.log(error);
     await session.abortTransaction();

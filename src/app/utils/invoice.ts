@@ -71,7 +71,7 @@ export const generatePdf = async (invoiceData: IInvoiceData): Promise<Buffer<Arr
           label: "Transaction Date",
           value: new Date(invoiceData.transactionDate).toLocaleString(),
         },
-        { label: "Total Amount", value: `৳${invoiceData.totalAmount.toFixed(2)}` },
+        { label: "Total Amount", value: invoiceData.totalAmount.toFixed(2) },
         { label: "Status", value: invoiceData.status },
       ];
 
