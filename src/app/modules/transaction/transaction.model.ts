@@ -1,10 +1,5 @@
 import mongoose, { model, Schema } from "mongoose";
-import {
-  ITransaction,
-  TRANSACTION_STATUS,
-  TRANSACTION_SOURCE,
-  TRANSACTION_TYPE,
-} from "./transaction.interface";
+import { ITransaction, TRANSACTION_STATUS, TRANSACTION_SOURCE, TRANSACTION_TYPE } from "./transaction.interface";
 
 const transactionSchema = new Schema<ITransaction>(
   {
@@ -28,12 +23,10 @@ const transactionSchema = new Schema<ITransaction>(
 
     status: { type: String, enum: Object.values(TRANSACTION_STATUS) },
     notes: { type: String },
+    invoiceUrl: { type: String, default: null },
     completedAt: { type: Date },
   },
   { timestamps: true, versionKey: false }
 );
 
-export const Transaction = model<ITransaction>(
-  "Transaction",
-  transactionSchema
-);
+export const Transaction = model<ITransaction>("Transaction", transactionSchema);

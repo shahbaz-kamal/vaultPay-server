@@ -33,6 +33,7 @@ export interface ITransaction {
 
   agentCommission?: number | null; // Agent commission
   status: TRANSACTION_STATUS;
+  invoiceUrl: string | null; 
   notes?: string;
   createdAt: Date;
   completedAt?: Date;

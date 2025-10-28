@@ -1,21 +1,12 @@
 import { User } from "./../user/user.model";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import {
-  calculateCashInCharge,
-  calculateCashOutCharge,
-  calculateSendMoney,
-} from "../../utils/calculateTransactionFee";
+import { calculateCashInCharge, calculateCashOutCharge, calculateSendMoney } from "../../utils/calculateTransactionFee";
 import { generateTransactionId } from "../../utils/generateTransactionId";
-import { Role } from "../user/user.interface";
+import { IUser, Role } from "../user/user.interface";
 
 import { Wallet } from "../wallet/wallet.model";
-import {
-  ITransaction,
-  TRANSACTION_SOURCE,
-  TRANSACTION_STATUS,
-  TRANSACTION_TYPE,
-} from "./transaction.interface";
+import { ITransaction, TRANSACTION_SOURCE, TRANSACTION_STATUS, TRANSACTION_TYPE } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 import { System } from "../system/system.model";
 import { ISSLCommerze } from "../sslCommerz/sslCommerze.interface";
@@ -23,11 +14,12 @@ import { SSLService } from "../sslCommerz/sslCommerze.service";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { searchableFields } from "../../constants";
 import { JwtPayload } from "jsonwebtoken";
+import { generatePdf, IInvoiceData } from "../../utils/invoice";
+import { generateInvoiceId } from "../../utils/generateInvoiceId";
+import { sendEmail } from "../../utils/sendEmail";
+import { uploadBufferToCloudinary } from "../../config/cloudinary.config";
 
-const addMoney = async (
-  payload: Partial<ITransaction>,
-  decodedToken: JwtPayload
-) => {
+const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
@@ -38,28 +30,15 @@ const addMoney = async (
       email: payload.receiverEmail,
     });
 
-    if (decodedToken.role !== isReceiverExist?.role)
-      throw new AppError(401, "You are not authorized");
+    if (decodedToken.role !== isReceiverExist?.role) throw new AppError(401, "You are not authorized");
 
-    if (!isReceiverExist)
-      throw new AppError(
-        401,
-        "Your profile has not been found. please contact our Call center"
-      );
-    if (!isReceiverExist.isVerified)
-      throw new AppError(401, "You are not verified");
-    if (isReceiverExist.isDeleted)
-      throw new AppError(401, "Receiver is deleted");
+    if (!isReceiverExist) throw new AppError(401, "Your profile has not been found. please contact our Call center");
+    if (!isReceiverExist.isVerified) throw new AppError(401, "You are not verified");
+    if (isReceiverExist.isDeleted) throw new AppError(401, "Receiver is deleted");
     if (!isReceiverExist.address)
-      throw new AppError(
-        401,
-        "Address should be updated in your profile through update user route to initialize add money"
-      );
+      throw new AppError(401, "Address should be updated in your profile through update user route to initialize add money");
     if (!isReceiverExist.phone)
-      throw new AppError(
-        401,
-        "Phone number should be updated in your profile through update user route to initialize add money"
-      );
+      throw new AppError(401, "Phone number should be updated in your profile through update user route to initialize add money");
 
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.ADD_MONEY;
@@ -90,6 +69,7 @@ const addMoney = async (
       phoneNumber: isReceiverExist.phone,
     };
     const sslPayment = await SSLService.sslAddMoneyInit(sslPayload);
+
     await session.commitTransaction();
     session.endSession();
 
@@ -108,7 +88,7 @@ const addMoneySuccess = async (query: Record<string, string>) => {
   session.startTransaction();
   try {
     //updating transaction wallet
-    const updatedTransaction = await Transaction.findOneAndUpdate(
+    let updatedTransaction = await Transaction.findOneAndUpdate(
       {
         transactionId: query.transactionId,
       },
@@ -128,18 +108,13 @@ const addMoneySuccess = async (query: Record<string, string>) => {
 
     //updating receiver wallet balance
 
-    const receiverWallet = await Wallet.findOne(
-      { _id: isReceiverExist.wallet },
-      null,
-      { session }
-    );
+    const receiverWallet = await Wallet.findOne({ _id: isReceiverExist.wallet }, null, { session });
 
     if (!receiverWallet) {
       throw new AppError(404, "Receiver wallet not found");
     }
 
-    const newBalance =
-      Number(receiverWallet.balance) + Number(updatedTransaction.amount);
+    const newBalance = Number(receiverWallet.balance) + Number(updatedTransaction.amount);
 
     await Wallet.findOneAndUpdate(
       {
@@ -147,6 +122,48 @@ const addMoneySuccess = async (query: Record<string, string>) => {
       },
       {
         balance: newBalance,
+      },
+      { new: true, runValidators: true, session }
+    );
+
+    const invoiceData: IInvoiceData = {
+      invoiceId: generateInvoiceId(),
+      transactionId: updatedTransaction.transactionId,
+      senderName: "SSLCommerze",
+      senderEmail: "",
+      transactionDate: updatedTransaction.createdAt as Date,
+      receiverName: isReceiverExist.name,
+      receiverEmail: isReceiverExist.email,
+      transactionType: "Add Money",
+      totalAmount: Number(updatedTransaction.amount),
+      status: updatedTransaction.status,
+      notes: updatedTransaction.notes || "",
+    };
+
+    const pdfBuffer = await generatePdf(invoiceData);
+    const cloudinaryResult = (await uploadBufferToCloudinary(pdfBuffer, `invoice-${invoiceData.invoiceId}`)) as any;
+    console.log("cloudinary result:", cloudinaryResult);
+
+    await sendEmail({
+      to: isReceiverExist.email,
+      subject: "Your Transaction Invoice",
+      templateName: "invoice",
+      templateData: invoiceData,
+      attachments: [
+        {
+          fileName: "invoice.pdf",
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    updatedTransaction = await Transaction.findOneAndUpdate(
+      {
+        transactionId: query.transactionId,
+      },
+      {
+        invoiceUrl: cloudinaryResult.secure_url,
       },
       { new: true, runValidators: true, session }
     );
@@ -197,40 +214,29 @@ const addMoneyCancel = async (query: Record<string, string>) => {
   }
 };
 
-const sendMoney = async (
-  payload: Partial<ITransaction>,
-  decodedToken: JwtPayload
-) => {
+const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
     // checking sender verification
     const isSenderExist = await User.findOne({ email: payload.senderEmail });
-    if (decodedToken.role !== isSenderExist?.role)
-      throw new AppError(401, "You are not authorized");
+    if (decodedToken.role !== isSenderExist?.role) throw new AppError(401, "You are not authorized");
 
     if (!isSenderExist) throw new AppError(401, "User does not exist");
-    if (!isSenderExist.isVerified)
-      throw new AppError(401, "Please verify your account to send money");
+    if (!isSenderExist.isVerified) throw new AppError(401, "Please verify your account to send money");
     if (isSenderExist.isDeleted) throw new AppError(401, "You are deleted");
-    if (isSenderExist.role !== Role.USER)
-      throw new AppError(401, "Only Users can initiate send money");
-    if (isSenderExist.role !== Role.USER)
-      throw new AppError(401, "Only Users can initiate send money");
+    if (isSenderExist.role !== Role.USER) throw new AppError(401, "Only Users can initiate send money");
+    if (isSenderExist.role !== Role.USER) throw new AppError(401, "Only Users can initiate send money");
 
     //checking reciever verificTION
     const isReceiverExist = await User.findOne({
       email: payload.receiverEmail,
     });
     if (!isReceiverExist) throw new AppError(401, "Receiver does not exist");
-    if (isReceiverExist.role !== Role.USER)
-      throw new AppError(401, "Receiver must be User");
-    if (!isReceiverExist.isVerified)
-      throw new AppError(401, "Receiver is not verified");
-    if (isReceiverExist.isDeleted)
-      throw new AppError(401, "Receiver is deleted");
-    if (isSenderExist.role !== Role.USER)
-      throw new AppError(401, "Only Users can receive send money");
+    if (isReceiverExist.role !== Role.USER) throw new AppError(401, "Receiver must be User");
+    if (!isReceiverExist.isVerified) throw new AppError(401, "Receiver is not verified");
+    if (isReceiverExist.isDeleted) throw new AppError(401, "Receiver is deleted");
+    if (isSenderExist.role !== Role.USER) throw new AppError(401, "Only Users can receive send money");
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.SEND_MONEY;
     const transactionSource = TRANSACTION_SOURCE.USER;
@@ -272,8 +278,7 @@ const sendMoney = async (
       throw new AppError(401, "Insufficient Balance");
     }
 
-    const newWalletBalanceOfSender =
-      (senderWallet?.balance as number) - (amount + transactionFee);
+    const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + transactionFee);
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -282,8 +287,7 @@ const sendMoney = async (
       },
       { session }
     );
-    const newWalletBalanceOfReceiver =
-      (receiverWallet?.balance as number) + amount;
+    const newWalletBalanceOfReceiver = (receiverWallet?.balance as number) + amount;
 
     await Wallet.findByIdAndUpdate(
       isReceiverExist.wallet,
@@ -310,43 +314,33 @@ const sendMoney = async (
     throw new AppError(401, error.message);
   }
 };
-const cashOut = async (
-  payload: Partial<ITransaction>,
-  decodedToken: JwtPayload
-) => {
+const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
   session.startTransaction();
   try {
     // checking sender verification
     const isSenderExist = await User.findOne({ email: payload.senderEmail });
 
-    if (decodedToken.role !== isSenderExist?.role)
-      throw new AppError(401, "You are not authorized");
+    if (decodedToken.role !== isSenderExist?.role) throw new AppError(401, "You are not authorized");
     if (!isSenderExist) throw new AppError(401, "User does not exist");
-    if (!isSenderExist.isVerified)
-      throw new AppError(401, "Please verify your account to send money");
+    if (!isSenderExist.isVerified) throw new AppError(401, "Please verify your account to send money");
     if (isSenderExist.isDeleted) throw new AppError(401, "You are deleted");
-    if (isSenderExist.role !== Role.USER)
-      throw new AppError(401, "Sender must be a user");
+    if (isSenderExist.role !== Role.USER) throw new AppError(401, "Sender must be a user");
 
     //checking reciever verificTION
     const isReceiverExist = await User.findOne({
       email: payload.receiverEmail,
     });
-    if (!(isReceiverExist?.role === Role.AGENT))
-      throw new AppError(401, "Receiver must be an agent");
+    if (!(isReceiverExist?.role === Role.AGENT)) throw new AppError(401, "Receiver must be an agent");
     if (!isReceiverExist) throw new AppError(401, "Receiver does not exist");
-    if (!isReceiverExist.isVerified)
-      throw new AppError(401, "Receiver is not verified");
-    if (isReceiverExist.isDeleted)
-      throw new AppError(401, "Receiver is deleted");
+    if (!isReceiverExist.isVerified) throw new AppError(401, "Receiver is not verified");
+    if (isReceiverExist.isDeleted) throw new AppError(401, "Receiver is deleted");
 
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.CASH_OUT;
     const transactionSource = TRANSACTION_SOURCE.USER;
     const transactionStatus = TRANSACTION_STATUS.PENDING;
-    const { sendMoneyCharge, agentCommission, systemProfit } =
-      await calculateCashOutCharge(payload.amount as number);
+    const { sendMoneyCharge, agentCommission, systemProfit } = await calculateCashOutCharge(payload.amount as number);
 
     payload.transactionId = transactionId;
     payload.type = transactionType;
@@ -385,8 +379,7 @@ const cashOut = async (
       throw new AppError(401, "Insufficient Balance");
     }
 
-    const newWalletBalanceOfSender =
-      (senderWallet?.balance as number) - (amount + sendMoneyCharge);
+    const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + sendMoneyCharge);
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -395,8 +388,7 @@ const cashOut = async (
       },
       { session }
     );
-    const newWalletBalanceOfReceiver =
-      (receiverWallet?.balance as number) + amount + agentCommission;
+    const newWalletBalanceOfReceiver = (receiverWallet?.balance as number) + amount + agentCommission;
 
     await Wallet.findByIdAndUpdate(
       isReceiverExist.wallet,
@@ -411,11 +403,7 @@ const cashOut = async (
 
     const currentSystemBalance = system?.balance as number;
     const newSystemBalance = currentSystemBalance + systemProfit;
-    await System.findByIdAndUpdate(
-      system?._id,
-      { balance: newSystemBalance },
-      { session }
-    );
+    await System.findByIdAndUpdate(system?._id, { balance: newSystemBalance }, { session });
     const newTransaction = await Transaction.findByIdAndUpdate(
       transaction[0]._id,
       {
@@ -444,11 +432,9 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     const isSenderExist = await User.findOne({ email: payload.senderEmail });
 
     if (!isSenderExist) throw new AppError(401, "Sender does not exist");
-    if (!(isSenderExist?.role === Role.AGENT))
-      throw new AppError(401, "Sender must be an agent");
+    if (!(isSenderExist?.role === Role.AGENT)) throw new AppError(401, "Sender must be an agent");
 
-    if (!isSenderExist.isVerified)
-      throw new AppError(401, "Please verify your account to send money");
+    if (!isSenderExist.isVerified) throw new AppError(401, "Please verify your account to send money");
     if (isSenderExist.isDeleted) throw new AppError(401, "You are deleted");
 
     //checking reciever verificTION
@@ -457,12 +443,9 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     });
 
     if (!isReceiverExist) throw new AppError(401, "Receiver does not exist");
-    if (!(isReceiverExist?.role === Role.USER))
-      throw new AppError(401, "Receiver must be a user");
-    if (!isReceiverExist.isVerified)
-      throw new AppError(401, "Receiver is not verified");
-    if (isReceiverExist.isDeleted)
-      throw new AppError(401, "Receiver is deleted");
+    if (!(isReceiverExist?.role === Role.USER)) throw new AppError(401, "Receiver must be a user");
+    if (!isReceiverExist.isVerified) throw new AppError(401, "Receiver is not verified");
+    if (isReceiverExist.isDeleted) throw new AppError(401, "Receiver is deleted");
 
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.CASH_IN;
@@ -506,8 +489,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
       throw new AppError(401, "Insufficient Balance");
     }
 
-    const newWalletBalanceOfSender =
-      (senderWallet?.balance as number) - (amount + transactionFee);
+    const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + transactionFee);
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -516,8 +498,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
       },
       { session }
     );
-    const newWalletBalanceOfReceiver =
-      (receiverWallet?.balance as number) + amount;
+    const newWalletBalanceOfReceiver = (receiverWallet?.balance as number) + amount;
 
     await Wallet.findByIdAndUpdate(
       isReceiverExist.wallet,
@@ -559,38 +540,20 @@ const cashIn = async (payload: Partial<ITransaction>) => {
 
 const getAllTransaction = async (query: Record<string, string>) => {
   const modelQuery = new QueryBuilder<ITransaction>(
-    Transaction.find()
-      .populate("senderId", "name email role isActive")
-      .populate("receiverId", "name email role isActive"),
+    Transaction.find().populate("senderId", "name email role isActive").populate("receiverId", "name email role isActive"),
     query
   );
-  const transactions = modelQuery
+  const transactions = modelQuery.search(searchableFields).filter().sort().fields().pagination();
 
-    .search(searchableFields)
-    .filter()
-    .sort()
-    .fields()
-    .pagination();
-
-  const [data, meta] = await Promise.all([
-    transactions.build(),
-    transactions.getMeta(),
-  ]);
+  const [data, meta] = await Promise.all([transactions.build(), transactions.getMeta()]);
 
   return { data, meta };
 };
 
-const getMyTransactions = async (
-  decodedToken: JwtPayload,
-  query: Record<string, string>
-) => {
+const getMyTransactions = async (decodedToken: JwtPayload, query: Record<string, string>) => {
   const myId = decodedToken.userId;
   const isMyDataExist = await User.findById(myId);
-  if (!isMyDataExist)
-    throw new AppError(
-      401,
-      "Your Data is not found. Please contact our support team."
-    );
+  if (!isMyDataExist) throw new AppError(401, "Your Data is not found. Please contact our support team.");
   const isVerified = isMyDataExist.role === decodedToken.role;
   if (!isVerified) throw new AppError(401, "User is not verified");
   // const myTransactions=await Transaction.
@@ -603,17 +566,9 @@ const getMyTransactions = async (
     query
   );
 
-  const myTransactions = modelQuery
-    .dateFiltering()
-    .search(searchableFields)
-    .sort()
-    .fields()
-    .pagination();
+  const myTransactions = modelQuery.dateFiltering().search(searchableFields).sort().fields().pagination();
 
-  const [data, meta] = await Promise.all([
-    myTransactions.build(),
-    myTransactions.getMeta(),
-  ]);
+  const [data, meta] = await Promise.all([myTransactions.build(), myTransactions.getMeta()]);
 
   return { data, meta };
 };

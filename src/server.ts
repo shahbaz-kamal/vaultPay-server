@@ -3,6 +3,7 @@ import { app } from "./app";
 import { envVars } from "./app/config/env";
 import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 import { seedSystemInformation } from "./app/utils/seedSystemInformation";
+import { connectRedis } from "./app/config/redis.config";
 
 const startServer = async () => {
   try {
@@ -21,4 +22,5 @@ const startServer = async () => {
   await startServer();
   await seedSuperAdmin();
   await seedSystemInformation();
+  connectRedis()
 })();

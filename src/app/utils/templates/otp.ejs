@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Reset Your Password</title>
+    <title>OTP Verification</title>
     <style>
       body {
         font-family: "Segoe UI", Arial, sans-serif;
@@ -28,29 +28,16 @@
         padding: 25px 15px;
       }
 
-      .header img {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.3);
-      }
-
       .header h1 {
         margin: 0;
         font-size: 22px;
         letter-spacing: 0.5px;
       }
-      .header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-      }
 
       .content {
         padding: 30px;
         line-height: 1.6;
+        text-align: center;
       }
 
       .content h2 {
@@ -64,20 +51,16 @@
         color: #555;
       }
 
-      .btn {
+      .otp {
         display: inline-block;
-        background: #007bff;
-        color: #ffffff !important;
-        text-decoration: none;
-        padding: 12px 24px;
+        font-size: 28px;
+        font-weight: bold;
+        background: #f0f0f0;
+        padding: 10px 25px;
         border-radius: 6px;
-        margin-top: 20px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
-
-      .btn:hover {
-        background: #0056cc;
+        margin: 20px 0;
+        letter-spacing: 6px;
+        color: #007bff;
       }
 
       .footer {
@@ -92,6 +75,20 @@
         color: #007bff;
         text-decoration: none;
       }
+      
+      .header img {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.3);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
     </style>
   </head>
 
@@ -103,13 +100,11 @@
       </div>
 
       <div class="content">
-        <h2>Password Reset Request</h2>
+        <h2>OTP Verification</h2>
         <p>Hello <%= name %>,</p>
-        <p>We received a request to reset your VaultPay account password. Click the button below to set a new password:</p>
-        <p style="text-align: center">
-          <a class="btn" href="<%= resetUILink %>" target="_blank">Reset Password</a>
-        </p>
-        <p>This link will expire in <strong>10 minutes</strong>. If you didn’t request this, you can safely ignore this email.</p>
+        <p>Your One-Time Password (OTP) for VaultPay is:</p>
+        <div class="otp"><%= otp %></div>
+        <p>This OTP is valid for <strong><%= otpExpirationTime %></strong> minutes. Please do not share it with anyone.</p>
       </div>
 
       <div class="footer">&copy; <%= new Date().getFullYear() %> VaultPay. All rights reserved.</div>
