@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://vault-pay-server.vercel.app"],
+    origin: ["http://localhost:5173", "https://vault-pay-server.vercel.app","http://localhost:3000"],
     credentials: true,
   })
 );

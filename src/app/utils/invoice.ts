@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import PDFDocument from "pdfkit";
 import AppError from "../errorHelpers/AppError";
-import path from 'path'
-
-
-
+import path from "path";
 
 export interface IInvoiceData {
   invoiceId: string;
@@ -19,7 +16,7 @@ export interface IInvoiceData {
   status: string; // e.g. "Completed", "Pending", "Failed"
   notes?: string;
 }
-const logoPath = path.join(__dirname, "../../assets/logo.png");
+const logoPath = path.join(__dirname, "../../app/assets/logo.png");
 
 export const generatePdf = async (invoiceData: IInvoiceData): Promise<Buffer<ArrayBufferLike>> => {
   try {

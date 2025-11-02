@@ -7,7 +7,6 @@ export const createUserZodSchema = z.object({
     .min(2, "Name should be at least minimum of two characters")
     .max(50, "Name should be maximum of 50 characters"),
   email: z
-    .string("Email Must be string")
     .email("Invalid Email Format")
     .min(2, "Email should be at least minimum of two characters")
     .max(50, "Email should be maximum of 50 characters"),
@@ -19,10 +18,7 @@ export const createUserZodSchema = z.object({
     .optional(),
   phone: z
     .string("Phone number must be a string")
-    .regex(
-      /^(\+8801[3-9][0-9]{8}|01[3-9][0-9]{8})$/,
-      "Invalid Bangladeshi phone number format"
-    )
+    .regex(/^(\+8801[3-9][0-9]{8}|01[3-9][0-9]{8})$/, "Invalid Bangladeshi phone number format")
     .optional(),
 
   profilePhoto: z.string("Photo must be string").optional(),
@@ -43,10 +39,7 @@ export const updateUserZodSchema = z.object({
 
   phone: z
     .string("Phone number must be a string")
-    .regex(
-      /^(\+8801[3-9][0-9]{8}|01[3-9][0-9]{8})$/,
-      "Invalid Bangladeshi phone number format"
-    )
+    .regex(/^(\+8801[3-9][0-9]{8}|01[3-9][0-9]{8})$/, "Invalid Bangladeshi phone number format")
     .optional(),
   profilePicture: z.string("Photo link must be string").optional(),
   address: z
@@ -59,9 +52,7 @@ export const updateUserZodSchema = z.object({
   isActive: z.enum(Object.values(IsActive) as [string]).optional(),
   isDeleted: z.boolean("isDeleted Must be true or false.").optional(),
   isVerified: z.boolean("isVerified Must be true or false.").optional(),
-  agentRequestStatus: z
-    .enum(Object.values(AgentRequestStatus) as [string])
-    .optional(),
+  agentRequestStatus: z.enum(Object.values(AgentRequestStatus) as [string]).optional(),
   agentRequestedAt: z.date().optional(),
   agentApprovedAt: z.date().optional(),
 });
