@@ -1,11 +1,5 @@
 import mongoose, { model, Schema } from "mongoose";
-import {
-  AgentRequestStatus,
-  IAuthProvider,
-  IsActive,
-  IUser,
-  Role,
-} from "./user.interface";
+import { AgentRequestStatus, IAuthProvider, IsActive, IUser, Role } from "./user.interface";
 
 const authProviderSchema = new Schema<IAuthProvider>(
   {
@@ -36,7 +30,7 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(IsActive),
       default: IsActive.ACTIVE,
     },
-    isVerified: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false },
     auths: { type: [authProviderSchema], required: true },
     agentRequestStatus: {
       type: String,

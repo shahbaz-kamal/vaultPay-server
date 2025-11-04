@@ -34,6 +34,7 @@ export const seedSuperAdmin = async () => {
       password: hashedPassword,
       isVerified: true,
       auths: [authProvider],
+      profilePicture:"https://i.ibb.co.com/0ymRYRjy/thyrone-p.jpg"
     };
     const userDoc = new User(payload);
     const superAdmin = await userDoc.save({ session });

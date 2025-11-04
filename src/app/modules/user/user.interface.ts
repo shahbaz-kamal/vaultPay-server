@@ -47,4 +47,5 @@ export interface IUser {
   agentRequestStatus?: AgentRequestStatus;
   agentRequestedAt?: Date | null;
   agentApprovedAt?: Date | null;
+  createdAt?:Date
 }
