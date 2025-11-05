@@ -8,7 +8,7 @@ const fifteenDaysAgo = new Date(now).setDate(now.getDate() - 15);
 const thirtyDaysAgo = new Date(now).setDate(now.getDate() - 30);
 const sixtyDaysAgo = new Date(now).setDate(now.getDate() - 60);
 
-const getUserStats = async () => {
+const getUserStatsForAdmin = async () => {
   const totalUsersPromise = User.countDocuments({ role: Role.USER });
   const totalActiveUsersPromise = User.countDocuments({ isActive: IsActive.ACTIVE, role: Role.USER });
   const totalInactiveUsersPromise = User.countDocuments({ isActive: IsActive.INACTIVE, role: Role.USER });
@@ -50,7 +50,7 @@ const getUserStats = async () => {
   };
 };
 
-const getTransactionStats = async () => {
+const getTransactionStatsForAdmin = async () => {
   // 1. Total transactions
   const totalTransactionsPromise = Transaction.countDocuments();
 
@@ -143,4 +143,14 @@ const getTransactionStats = async () => {
   };
 };
 
-export const StatsService = { getUserStats, getTransactionStats };
+//agents
+
+
+//users
+
+const getTransactionStatsForUser=async(userId)=>{
+  
+return {}
+}
+
+export const StatsService = { getUserStatsForAdmin, getTransactionStatsForAdmin ,getTransactionStatsForUser};

@@ -237,6 +237,19 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
     const transactionStatus = TRANSACTION_STATUS.PENDING;
     const transactionFee = await calculateSendMoney();
 
+
+
+    // Updating systrem balance. for send money.
+
+
+    const system = await System.findOne({}, null, { session });
+
+    const currentSystemBalance = system?.balance as number;
+    const newSystemBalance = currentSystemBalance + transactionFee;
+ 
+
+    await System.findByIdAndUpdate(system?._id, { balance: newSystemBalance}, { session });
+
     payload.transactionId = transactionId;
     payload.type = transactionType;
     payload.source = transactionSource;
@@ -300,7 +313,7 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
     const invoiceData: IInvoiceData = {
       invoiceId: generateInvoiceId(),
       transactionId: updatedTransaction.transactionId,
-      senderName:isSenderExist.name,
+      senderName: isSenderExist.name,
       senderEmail: isSenderExist.email,
       transactionDate: updatedTransaction.createdAt as Date,
       receiverName: isReceiverExist.name,
@@ -325,7 +338,6 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
       },
       { new: true, runValidators: true, session }
     );
-   
 
     // return { success: true, message: "Payment Completed successfully" };
 
@@ -341,8 +353,6 @@ const sendMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayloa
     throw new AppError(401, error.message);
   }
 };
-
-
 
 const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
@@ -370,12 +380,13 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
     const transactionType = TRANSACTION_TYPE.CASH_OUT;
     const transactionSource = TRANSACTION_SOURCE.USER;
     const transactionStatus = TRANSACTION_STATUS.PENDING;
-    const { sendMoneyCharge, agentCommission, systemProfit } = await calculateCashOutCharge(payload.amount as number);
+    const { cashOutCharge, agentCommission, systemProfit } = await calculateCashOutCharge(payload.amount as number);
+    console.log({ cashOutCharge, agentCommission, systemProfit });
 
     payload.transactionId = transactionId;
     payload.type = transactionType;
     payload.source = transactionSource;
-    payload.transactionFee = sendMoneyCharge;
+    payload.transactionFee = cashOutCharge;
     // if (typeof transactionFee !== "number" || isNaN(transactionFee)) {
     //   throw new AppError(500, "Transaction fee could not be calculated");
     // }
@@ -387,9 +398,7 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
     const transaction = await Transaction.create([payload], { session });
 
     const amount = Number(payload.amount);
-    // if (isNaN(amount) || amount <= 0) {
-    //   throw new AppError(400, "Invalid amount");
-    // }
+  
 
     const senderWallet = await Wallet.findById(isSenderExist.wallet, null, {
       session,
@@ -405,11 +414,11 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
       throw new AppError(500, "Receiver wallet not found or has no balance");
     }
     //updating wallets of sender and receiver
-    if ((senderWallet?.balance as number) < amount + sendMoneyCharge) {
+    if ((senderWallet?.balance as number) < amount + cashOutCharge) {
       throw new AppError(401, "Insufficient Balance");
     }
 
-    const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + sendMoneyCharge);
+    const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + cashOutCharge);
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -433,7 +442,14 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
 
     const currentSystemBalance = system?.balance as number;
     const newSystemBalance = currentSystemBalance + systemProfit;
-    await System.findByIdAndUpdate(system?._id, { balance: newSystemBalance }, { session });
+    let newAgentComimissionPayout;
+    if (system?.agentComimissionPayout) {
+      newAgentComimissionPayout = (system?.agentComimissionPayout as number) + agentCommission;
+    } else {
+      newAgentComimissionPayout = agentCommission;
+    }
+
+    await System.findByIdAndUpdate(system?._id, { balance: newSystemBalance, agentComimissionPayout:newAgentComimissionPayout }, { session });
     let updatedTransaction = await Transaction.findByIdAndUpdate(
       transaction[0]._id,
       {
@@ -446,7 +462,7 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
     const invoiceData: IInvoiceData = {
       invoiceId: generateInvoiceId(),
       transactionId: updatedTransaction.transactionId,
-      senderName:isSenderExist.name,
+      senderName: isSenderExist.name,
       senderEmail: isSenderExist.email,
       transactionDate: updatedTransaction.createdAt as Date,
       receiverName: isReceiverExist.name,
@@ -471,10 +487,6 @@ const cashOut = async (payload: Partial<ITransaction>, decodedToken: JwtPayload)
       },
       { new: true, runValidators: true, session }
     );
-
-
-
-
 
     await session.commitTransaction();
     session.endSession();
@@ -516,7 +528,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     const transactionSource = TRANSACTION_SOURCE.AGENT;
     const transactionStatus = TRANSACTION_STATUS.PENDING;
     const transactionFee = await calculateCashInCharge();
-    console.log("From Transaction Fee",transactionFee)
+    console.log("From Transaction Fee", transactionFee);
 
     payload.transactionId = transactionId;
     payload.type = transactionType;
@@ -528,11 +540,10 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     payload.status = transactionStatus;
     payload.senderId = isSenderExist._id;
     payload.receiverId = isReceiverExist._id;
-   
+
     const transaction = await Transaction.create([payload], { session });
 
     const amount = Number(payload.amount);
- 
 
     const senderWallet = await Wallet.findById(isSenderExist.wallet, null, {
       session,
@@ -553,7 +564,6 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     }
 
     const newWalletBalanceOfSender = (senderWallet?.balance as number) - (amount + transactionFee);
-  
 
     await Wallet.findByIdAndUpdate(
       isSenderExist.wallet,
@@ -585,7 +595,7 @@ const cashIn = async (payload: Partial<ITransaction>) => {
     const invoiceData: IInvoiceData = {
       invoiceId: generateInvoiceId(),
       transactionId: updatedTransaction.transactionId,
-      senderName:isSenderExist.name,
+      senderName: isSenderExist.name,
       senderEmail: isSenderExist.email,
       transactionDate: updatedTransaction.createdAt as Date,
       receiverName: isReceiverExist.name,

@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHelpers/AppError";
-import {
-  AgentRequestStatus,
-  IAuthProvider,
-  IUser,
-  Role,
-
-} from "./user.interface";
+import { AgentRequestStatus, IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import bcryptJs from "bcryptjs";
@@ -18,6 +12,7 @@ import { searchableFields } from "../../constants";
 
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { deleteFromCloudinary } from "../../config/cloudinary.config";
+import { path } from "pdfkit";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();
@@ -28,10 +23,7 @@ const createUser = async (payload: Partial<IUser>) => {
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
   }
-  const hashedPassword = await bcryptJs.hash(
-    password as string,
-    Number(envVars.BCRYPT_SALT_ROUND)
-  );
+  const hashedPassword = await bcryptJs.hash(password as string, Number(envVars.BCRYPT_SALT_ROUND));
 
   const authProvider: IAuthProvider = {
     provider: "credentials",
@@ -68,12 +60,7 @@ const createUser = async (payload: Partial<IUser>) => {
 //const users =new QueryBuilder(User.find(),query)
 const getAllUser = async (query: Record<string, string>) => {
   const modelQuery = new QueryBuilder<IUser>(User.find(), query);
-  const users = modelQuery
-    .search(searchableFields)
-    .filter()
-    .sort()
-    .fields()
-    .pagination();
+  const users = modelQuery.search(searchableFields).filter().sort().fields().pagination();
 
   const [data, meta] = await Promise.all([users.build(), users.getMeta()]);
 
@@ -125,11 +112,7 @@ const getSingleUser = async (userId: string) => {
   const user = await User.findById(userId);
   return { data: user };
 };
-const updateUser = async (
-  userId: string,
-  payload: Partial<IUser>,
-  decodedToken: JwtPayload
-) => {
+const updateUser = async (userId: string, payload: Partial<IUser>, decodedToken: JwtPayload) => {
   const isUserExist = await User.findById(userId);
 
   if (!isUserExist) {
@@ -150,18 +133,13 @@ const updateUser = async (
     }
   }
 
-if(decodedToken.role===Role.USER ||  decodedToken.role===Role.AGENT){
-if (userId!==decodedToken.userId) throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT) {
+    if (userId !== decodedToken.userId) throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
   }
   if (payload.password) {
-    payload.password = await bcryptJs.hash(
-      payload.password,
-      Number(envVars.BCRYPT_SALT_ROUND)
-    );
+    payload.password = await bcryptJs.hash(payload.password, Number(envVars.BCRYPT_SALT_ROUND));
     if (isUserExist.auths.length) {
-      const isCredentialsExist = isUserExist.auths.find(
-        (auth) => auth.provider === "credentials"
-      );
+      const isCredentialsExist = isUserExist.auths.find((auth) => auth.provider === "credentials");
       if (!isCredentialsExist) {
         const newAuth: IAuthProvider = {
           provider: "credentials",
@@ -176,31 +154,24 @@ if (userId!==decodedToken.userId) throw new AppError(httpStatus.FORBIDDEN, "You 
     const requesterRole = decodedToken.role;
 
     if (payload.agentRequestStatus) {
-      if (
-        payload.agentRequestStatus !== AgentRequestStatus.PENDING &&
-        isSelfUpdate &&
-        requesterRole === Role.USER
-      )
+      if (payload.agentRequestStatus !== AgentRequestStatus.PENDING && isSelfUpdate && requesterRole === Role.USER)
         throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
     }
 
-    if (payload.agentApprovedAt && requesterRole === Role.USER)
-      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
-
-
+    if (payload.agentApprovedAt && requesterRole === Role.USER) throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
   }
   const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
     new: true,
     runValidators: true,
   });
 
-if(payload.profilePicture && isUserExist.profilePicture) await deleteFromCloudinary(isUserExist.profilePicture);
+  if (payload.profilePicture && isUserExist.profilePicture) await deleteFromCloudinary(isUserExist.profilePicture);
 
   return newUpdatedUser;
 };
 
 const getMe = async (myId: string) => {
-  const user = await User.findById(myId).select("-password");
+  const user = await User.findById(myId).select("-password").populate({ path: "wallet" });
 
   return {
     data: user,
@@ -211,5 +182,6 @@ export const UserServices = {
   createUser,
   getAllUser,
   updateUser,
-  getSingleUser,getMe
+  getSingleUser,
+  getMe,
 };

@@ -25,6 +25,7 @@ const transactionSchema = new Schema<ITransaction>(
     notes: { type: String },
     invoiceUrl: { type: String, default: null },
     completedAt: { type: Date },
+    agentCommission:{type:Number ,default:null}
   },
   { timestamps: true, versionKey: false }
 );

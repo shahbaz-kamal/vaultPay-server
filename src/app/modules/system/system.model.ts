@@ -16,6 +16,7 @@ const systemSchema = new Schema<ISystem>(
   {
     balance: { type: Number, required: true, default: 0 },
     systemCharges: { type: [systemChargesSchema] },
+    agentComimissionPayout: { type: Number, default: null },
   },
   { versionKey: false, timestamps: true }
 );

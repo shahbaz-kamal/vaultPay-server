@@ -16,7 +16,7 @@ export const calculateCashOutCharge = async (amount: number) => {
     (singleType) => singleType.type === TRANSACTION_TYPE.CASH_OUT
   );
   const informationObject = cashOutData[0];
-  const sendMoneyCharge =
+  const cashOutCharge =
     (informationObject.charge /
       Number(informationObject.perAmountTransaction)) *
     amount;
@@ -25,10 +25,14 @@ export const calculateCashOutCharge = async (amount: number) => {
       Number(informationObject.perAmountTransaction)) *
     amount;
 
-  const systemProfit = sendMoneyCharge - agentCommission;
-  console.log(sendMoneyCharge, "send money charge");
-  return { sendMoneyCharge, agentCommission, systemProfit };
+  const systemProfit = cashOutCharge - agentCommission;
+ 
+  return { cashOutCharge, agentCommission, systemProfit };
 };
+
+
+
+
 export const calculateCashInCharge = async () => {
   const system = await System.find();
   const cashInData = system[0].systemCharges.filter(

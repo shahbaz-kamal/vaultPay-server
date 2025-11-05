@@ -9,5 +9,6 @@ export interface ISystemCharges {
 export interface ISystem {
   balance: number;
   systemCharges: ISystemCharges[];
+  agentComimissionPayout?: number | null;
   createdAt?: Date;
 }
