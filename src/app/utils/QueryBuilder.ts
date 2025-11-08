@@ -54,7 +54,7 @@ export class QueryBuilder<T> {
 
   pagination(): this {
     const pageNumber = Number(this.query.page) || 1;
-    const limit = Number(this.query.limit) || 10;
+    const limit = Number(this.query.limit) ;
     const skip = (pageNumber - 1) * limit;
 
     this.modelQuery = this.modelQuery.limit(limit).skip(skip);
@@ -99,15 +99,19 @@ export class QueryBuilder<T> {
     return this.modelQuery;
   }
   async getMeta() {
-    const totalDocuments = await this.modelQuery.model.countDocuments();
     const limit = Number(this.query.limit) || 10;
     const pageNumber = Number(this.query.page) || 1;
-    const totalPage = Math.ceil(totalDocuments / limit);
 
+    const totalDocuments = await this.modelQuery.model.countDocuments();
+  
     const filter = this.modelQuery.getFilter();
+    console.log("filtered object",filter)
     const noOfMatchedDocuments = await this.modelQuery.model.countDocuments(
       filter
     );
+    const totalPage = Math.ceil(noOfMatchedDocuments / limit);
+
+  
 
     const meta: TMeta = {
       totalDocuments,

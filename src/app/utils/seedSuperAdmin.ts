@@ -19,10 +19,7 @@ export const seedSuperAdmin = async () => {
     }
     console.log("Trying to create super admin");
 
-    const hashedPassword = await bcryptjs.hash(
-      envVars.SUPER_ADMIN_PASSWORD,
-      Number(envVars.BCRYPT_SALT_ROUND)
-    );
+    const hashedPassword = await bcryptjs.hash(envVars.SUPER_ADMIN_PASSWORD, Number(envVars.BCRYPT_SALT_ROUND));
     const authProvider: IAuthProvider = {
       provider: "credentials",
       providerId: envVars.SUPER_ADMIN_EMAIL,
@@ -34,8 +31,9 @@ export const seedSuperAdmin = async () => {
       password: hashedPassword,
       isVerified: true,
       auths: [authProvider],
-      profilePicture:"https://i.ibb.co.com/0ymRYRjy/thyrone-p.jpg"
+      profilePicture: "https://i.ibb.co.com/0ymRYRjy/thyrone-p.jpg",
     };
+
     const userDoc = new User(payload);
     const superAdmin = await userDoc.save({ session });
     const superWallet = await Wallet.create([{ user: superAdmin._id }], {

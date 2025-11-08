@@ -20,130 +20,116 @@ const addMoney = catchAsync(
     });
   }
 );
-const addMoneySuccess = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const query = req.query;
-    const result = await TransactionService.addMoneySuccess(
-      query as Record<string, string>
+const addMoneySuccess = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const query = req.query;
+  const result = await TransactionService.addMoneySuccess(query as Record<string, string>);
+  if (result?.success) {
+    res.redirect(
+      `${envVars.SSL.SUCCESS_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
     );
-    if (result?.success) {
-      res.redirect(
-        `${envVars.SSL.SUCCESS_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
-      );
-    }
-    // sendResponse(res, {
-    //   statusCode: httpStatus.CREATED,
-    //   success: true,
-    //   message: "Add Money Successfull",
-    //   data: result,
-    // });
   }
-);
-const addMoneyFail = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const query = req.query;
-    const result = await TransactionService.addMoneyFail(
-      query as Record<string, string>
+  // sendResponse(res, {
+  //   statusCode: httpStatus.CREATED,
+  //   success: true,
+  //   message: "Add Money Successfull",
+  //   data: result,
+  // });
+});
+const addMoneyFail = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const query = req.query;
+  const result = await TransactionService.addMoneyFail(query as Record<string, string>);
+  if (result?.success === false) {
+    res.redirect(
+      `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
     );
-    if (result?.success === false) {
-      res.redirect(
-        `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
-      );
-    }
   }
-);
-const addMoneyCancel = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const query = req.query;
-    const result = await TransactionService.addMoneyFail(
-      query as Record<string, string>
+});
+const addMoneyCancel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const query = req.query;
+  const result = await TransactionService.addMoneyFail(query as Record<string, string>);
+  if (result?.success === false) {
+    res.redirect(
+      `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
     );
-    if (result?.success === false) {
-      res.redirect(
-        `${envVars.SSL.FAIL_FRONTEND_URL}?transactionId=${query.transactionId}&message=${result.message}&amount=${query.amount}&status=${query.status}`
-      );
-    }
   }
-);
+});
 
-const sendMoney = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const sendMoney = await TransactionService.sendMoney(
-      req.body,
-      decodedToken
-    );
+const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const sendMoney = await TransactionService.sendMoney(req.body, decodedToken);
 
-    sendResponse(res, {
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: "Send Money Successfull",
-      data: sendMoney,
-    });
-  }
-);
-const cashOut = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const cashOut = await TransactionService.cashOut(req.body, decodedToken);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Send Money Successfull",
+    data: sendMoney,
+  });
+});
+const cashOut = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const cashOut = await TransactionService.cashOut(req.body, decodedToken);
 
-    sendResponse(res, {
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: "Cash out Successfull",
-      data: cashOut,
-    });
-  }
-);
-const cashIn = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const cashIn = await TransactionService.cashIn(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Cash out Successfull",
+    data: cashOut,
+  });
+});
+const cashIn = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const cashIn = await TransactionService.cashIn(req.body);
 
-    sendResponse(res, {
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: "Cash In Successfull",
-      data: cashIn,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Cash In Successfull",
+    data: cashIn,
+  });
+});
 
-const getAllTransaction = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
-    const query = req.query;
-    const result = await TransactionService.getAllTransaction(
-      query as Record<string, string>
-    );
+const getAllTransaction = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  //   throw new AppError(httpStatus.BAD_REQUEST,"ssssss")
+  const query = req.query;
+  const result = await TransactionService.getAllTransaction(query as Record<string, string>);
 
-    sendResponse(res, {
-      success: true,
-      message: "Transaction data retrieved successfully",
-      statusCode: httpStatus.OK,
-      data: result.data,
-      meta: result?.meta,
-    });
-  }
-);
-const getMyTransactions = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const query = req.query;
+  sendResponse(res, {
+    success: true,
+    message: "Transaction data retrieved successfully",
+    statusCode: httpStatus.OK,
+    data: result.data,
+    meta: result?.meta,
+  });
+});
 
-    const result = await TransactionService.getMyTransactions(
-      decodedToken,
-      query as Record<string, string>
-    );
+const getMyTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const query = req.query;
 
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "Your Transaction data has been received",
-      data: result.data,
-      meta: result?.meta,
-    });
-  }
-);
+  const result = await TransactionService.getMyTransactions(decodedToken, query as Record<string, string>);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Your Transaction data has been received",
+    data: result.data,
+    meta: result?.meta,
+  });
+});
+
+const getSingleTransaction = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const transactionId = req.query.transactionId;
+  console.log("From single transactoion",transactionId)
+
+  const result = await TransactionService.getSingleTransaction(transactionId as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Your Transaction data has been received",
+    data: result,
+   
+  });
+});
 export const TransactionController = {
   addMoney,
   addMoneySuccess,
@@ -153,5 +139,5 @@ export const TransactionController = {
   cashOut,
   cashIn,
   getAllTransaction,
-  getMyTransactions,
+  getMyTransactions,getSingleTransaction
 };

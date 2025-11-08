@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "./../user/user.model";
 import AppError from "../../errorHelpers/AppError";
@@ -19,6 +20,7 @@ import { generateInvoiceId } from "../../utils/generateInvoiceId";
 
 import { handleInvoiceSendAndUpload } from "../../utils/handleInvoiceSendAndUpload";
 import { IInvoiceData } from "../../utils/invoice";
+import httpStatus from 'http-status-codes'
 
 const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload) => {
   const session = await Transaction.startSession();
@@ -75,7 +77,7 @@ const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload
     session.endSession();
 
     console.log("from add Money\n", payload);
-    return { paymeent: sslPayment.GatewayPageURL, result: transaction };
+    return { payment: sslPayment.GatewayPageURL, result: transaction };
   } catch (error: any) {
     console.log(error);
     await session.abortTransaction();
@@ -647,6 +649,7 @@ const getAllTransaction = async (query: Record<string, string>) => {
 
 const getMyTransactions = async (decodedToken: JwtPayload, query: Record<string, string>) => {
   const myId = decodedToken.userId;
+  const  myEmail=decodedToken.email;
   const isMyDataExist = await User.findById(myId);
   if (!isMyDataExist) throw new AppError(401, "Your Data is not found. Please contact our support team.");
   const isVerified = isMyDataExist.role === decodedToken.role;
@@ -665,8 +668,17 @@ const getMyTransactions = async (decodedToken: JwtPayload, query: Record<string,
 
   const [data, meta] = await Promise.all([myTransactions.build(), myTransactions.getMeta()]);
 
+  console.log(data.length)
+  console.log(data)
+
   return { data, meta };
 };
+
+const getSingleTransaction=async(transactionId:string)=>{
+const transaction=Transaction.findOne({transactionId})
+if(!transaction) throw new AppError(httpStatus.NOT_FOUND,"This Transaction dosent Exist")
+  return transaction
+}
 export const TransactionService = {
   addMoney,
   addMoneySuccess,
@@ -676,5 +688,5 @@ export const TransactionService = {
   cashOut,
   cashIn,
   getAllTransaction,
-  getMyTransactions,
+  getMyTransactions,getSingleTransaction
 };

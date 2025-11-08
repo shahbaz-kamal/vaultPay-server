@@ -57,5 +57,10 @@ router.get(
   checkAuth(...Object.values(Role)),
   TransactionController.getMyTransactions
 );
+router.get(
+  "/getSingleTransaction",
+  checkAuth(...Object.values(Role)),
+  TransactionController.getSingleTransaction
+);
 
 export const TransactionRoute = router;
