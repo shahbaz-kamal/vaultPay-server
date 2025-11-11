@@ -7,7 +7,7 @@ export const calculateSendMoney = async () => {
     (singleType) => singleType.type === TRANSACTION_TYPE.SEND_MONEY
   );
   const sendMoneyCharge = sendMoneyData[0].charge;
-  console.log(sendMoneyCharge, "send money charge");
+  // console.log(sendMoneyCharge, "send money charge");
   return sendMoneyCharge;
 };
 export const calculateCashOutCharge = async (amount: number) => {

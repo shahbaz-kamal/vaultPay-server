@@ -8,10 +8,10 @@ export const validateRequest =
       if (req.body.data) req.body = JSON.parse(req.body?.data);
       // console.log("Old Body", req.body);
       req.body = await zodSchema.parseAsync(req.body);
-      console.log("New Body", req.body);
+      // console.log("New Body", req.body);
       next();
     } catch (error) {
-      console.log("error====>", error);
+      // console.log("error====>", error);
       next(error);
     }
   };

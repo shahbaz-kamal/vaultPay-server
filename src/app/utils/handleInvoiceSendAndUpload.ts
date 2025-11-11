@@ -8,7 +8,7 @@ export const handleInvoiceSendAndUpload = async (invoiceData: IInvoiceData, numb
   try {
     const pdfBuffer = await generatePdf(invoiceData);
     const cloudinaryResult = await uploadBufferToCloudinary(pdfBuffer, `invoice-${invoiceData.invoiceId}`);
-    console.log("cloudinary result:", cloudinaryResult);
+    // console.log("cloudinary result:", cloudinaryResult);
     const emailRecievers = [];
 
     //   if transactions is made by user to user, send email to both sender and receiver

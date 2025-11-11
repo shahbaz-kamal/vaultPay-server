@@ -62,11 +62,11 @@ const updateUser = catchAsync(
     const userId = req.params.id;
     const verifiedToken = req.user as JwtPayload;
     const payload:Partial<IUser> = {...req.body,profilePicture:req.file?.path};
-    console.log("Checking cloudinary. FIle has been uploaded to cloudinary\n",payload)
+    // console.log("Checking cloudinary. FIle has been uploaded to cloudinary\n",payload)
     // throw new AppError(401,"Fake Error")
     const user = await UserServices.updateUser(userId, payload, verifiedToken);
 
-    console.log("From file upload===>", { file: req.file, body: payload });
+    // console.log("From file upload===>", { file: req.file, body: payload });
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,

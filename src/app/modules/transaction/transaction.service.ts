@@ -38,10 +38,10 @@ const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload
     if (!isReceiverExist) throw new AppError(401, "Your profile has not been found. please contact our Call center");
     if (!isReceiverExist.isVerified) throw new AppError(401, "You are not verified");
     if (isReceiverExist.isDeleted) throw new AppError(401, "Receiver is deleted");
-    if (!isReceiverExist.address)
-      throw new AppError(401, "Address should be updated in your profile through update user route to initialize add money");
-    if (!isReceiverExist.phone)
-      throw new AppError(401, "Phone number should be updated in your profile through update user route to initialize add money");
+    // if (!isReceiverExist.address)
+    //   throw new AppError(401, "Address should be updated in your profile through update user route to initialize add money");
+    // if (!isReceiverExist.phone)
+    //   throw new AppError(401, "Phone number should be updated in your profile through update user route to initialize add money");
 
     const transactionId = generateTransactionId();
     const transactionType = TRANSACTION_TYPE.ADD_MONEY;
@@ -668,8 +668,8 @@ const getMyTransactions = async (decodedToken: JwtPayload, query: Record<string,
 
   const [data, meta] = await Promise.all([myTransactions.build(), myTransactions.getMeta()]);
 
-  console.log(data.length)
-  console.log(data)
+  // console.log(data.length)
+  // console.log(data)
 
   return { data, meta };
 };
