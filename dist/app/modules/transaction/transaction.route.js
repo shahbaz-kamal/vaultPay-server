@@ -20,4 +20,5 @@ router.post("/cash-out", (0, validateRequest_1.validateRequest)(transaction_vali
 router.post("/cash-in", (0, validateRequest_1.validateRequest)(transaction_validation_1.sendMoneyZodSchema), (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.cashIn);
 router.get("/transactions", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), transaction_controller_1.TransactionController.getAllTransaction);
 router.get("/myTransactions", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.getMyTransactions);
+router.get("/getSingleTransaction", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), transaction_controller_1.TransactionController.getSingleTransaction);
 exports.TransactionRoute = router;

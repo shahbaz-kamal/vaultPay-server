@@ -56,6 +56,8 @@ const transactionSchema = new mongoose_1.Schema({
     transactionFee: { type: Number },
     status: { type: String, enum: Object.values(transaction_interface_1.TRANSACTION_STATUS) },
     notes: { type: String },
+    invoiceUrl: { type: String, default: null },
     completedAt: { type: Date },
+    agentCommission: { type: Number, default: null }
 }, { timestamps: true, versionKey: false });
 exports.Transaction = (0, mongoose_1.model)("Transaction", transactionSchema);

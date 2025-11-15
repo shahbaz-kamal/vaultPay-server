@@ -60,7 +60,7 @@ const userSchema = new mongoose_1.Schema({
         enum: Object.values(user_interface_1.IsActive),
         default: user_interface_1.IsActive.ACTIVE,
     },
-    isVerified: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false },
     auths: { type: [authProviderSchema], required: true },
     agentRequestStatus: {
         type: String,

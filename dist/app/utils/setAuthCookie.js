@@ -10,20 +10,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAuthCookie = void 0;
-const env_1 = require("../config/env");
-const isProduction = env_1.envVars.NODE_ENV === "production";
 const setAuthCookie = (res, tokenInfo) => __awaiter(void 0, void 0, void 0, function* () {
-    if (tokenInfo.accessToken)
+    if (tokenInfo.accessToken) {
         res.cookie("accessToken", tokenInfo.accessToken, {
             httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? "none" : "lax",
+            secure: true,
+            sameSite: "none",
         });
-    if (tokenInfo.refreshToken)
+    }
+    if (tokenInfo.refreshToken) {
         res.cookie("refreshToken", tokenInfo.refreshToken, {
             httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? "none" : "lax",
+            secure: true,
+            sameSite: "none",
         });
+    }
 });
 exports.setAuthCookie = setAuthCookie;

@@ -148,7 +148,8 @@ const getTransactionStatsForAdmin = async () => {
 
 //users
 
-const getTransactionStatsForUser=async(userId)=>{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getTransactionStatsForUser=async(userId:string)=>{
   
 return {}
 }

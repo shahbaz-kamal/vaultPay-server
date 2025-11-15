@@ -17,6 +17,7 @@ const app_1 = require("./app");
 const env_1 = require("./app/config/env");
 const seedSuperAdmin_1 = require("./app/utils/seedSuperAdmin");
 const seedSystemInformation_1 = require("./app/utils/seedSystemInformation");
+const redis_config_1 = require("./app/config/redis.config");
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(env_1.envVars.DB_URL);
@@ -33,4 +34,5 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     yield startServer();
     yield (0, seedSuperAdmin_1.seedSuperAdmin)();
     yield (0, seedSystemInformation_1.seedSystemInformation)();
+    (0, redis_config_1.connectRedis)();
 }))();

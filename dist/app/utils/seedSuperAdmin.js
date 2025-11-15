@@ -44,6 +44,7 @@ const seedSuperAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
             password: hashedPassword,
             isVerified: true,
             auths: [authProvider],
+            profilePicture: "https://i.ibb.co.com/0ymRYRjy/thyrone-p.jpg",
         };
         const userDoc = new user_model_1.User(payload);
         const superAdmin = yield userDoc.save({ session });

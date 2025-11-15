@@ -26,9 +26,9 @@ const credentialsLogin = (0, catchAsync_1.catchAsync)((req, res, next) => __awai
     // const loginInfo = await AuthServices.credentialsLogin(req.body);
     passport_1.default.authenticate("local", (error, user, info) => __awaiter(void 0, void 0, void 0, function* () {
         if (error)
-            return next(new AppError_1.default(401, error));
+            return next(new AppError_1.default(http_status_codes_1.default.BAD_REQUEST || 401, error));
         if (!user)
-            return next(new AppError_1.default(401, info === null || info === void 0 ? void 0 : info.message));
+            return next(new AppError_1.default(http_status_codes_1.default.BAD_REQUEST || 401, info === null || info === void 0 ? void 0 : info.message));
         const userTokens = yield (0, userToken_1.createUserTokens)(user);
         delete user.toObject().password;
         (0, setAuthCookie_1.setAuthCookie)(res, userTokens);
@@ -85,17 +85,55 @@ const logout = (0, catchAsync_1.catchAsync)(
         data: null,
     });
 }));
-const resetPassword = (0, catchAsync_1.catchAsync)(
+const setPassword = (0, catchAsync_1.catchAsync)(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+(req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    const password = req.body.password;
+    yield auth_service_1.AuthServices.setPassword(decodedToken.userId, password);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "Password has been set successfully ",
+        data: null,
+    });
+}));
+const changePassword = (0, catchAsync_1.catchAsync)(
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
-    yield auth_service_1.AuthServices.resetPassword(oldPassword, newPassword, decodedToken);
+    yield auth_service_1.AuthServices.changePassword(oldPassword, newPassword, decodedToken);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,
         message: "Password changed successfully ",
+        data: null,
+    });
+}));
+const resetPassword = (0, catchAsync_1.catchAsync)(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+(req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    const payload = req.body;
+    yield auth_service_1.AuthServices.resetPassword(payload, decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "Password changed successfully ",
+        data: null,
+    });
+}));
+const forgotPassword = (0, catchAsync_1.catchAsync)(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+(req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email } = req.body;
+    yield auth_service_1.AuthServices.forgotPassword(email);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "Email sent successfully ",
         data: null,
     });
 }));
@@ -111,6 +149,7 @@ const googleCallbackController = (0, catchAsync_1.catchAsync)(
     if (!user)
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User Not Found");
     const tokenInfo = yield (0, userToken_1.createUserTokens)(user);
+    console.log("From google login", tokenInfo);
     (0, setAuthCookie_1.setAuthCookie)(res, tokenInfo);
     res.redirect(`${env_1.envVars.FRONTEND_URL}/${redirectTo}`);
     // sendResponse(res, {
@@ -126,4 +165,7 @@ exports.AuthControllers = {
     logout,
     resetPassword,
     googleCallbackController,
+    changePassword,
+    setPassword,
+    forgotPassword,
 };

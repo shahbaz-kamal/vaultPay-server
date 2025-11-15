@@ -35,6 +35,7 @@ const env_1 = require("../../config/env");
 const wallet_model_1 = require("../wallet/wallet.model");
 const constants_1 = require("../../constants");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
+const cloudinary_config_1 = require("../../config/cloudinary.config");
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
@@ -65,12 +66,7 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 //const users =new QueryBuilder(User.find(),query)
 const getAllUser = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const modelQuery = new QueryBuilder_1.QueryBuilder(user_model_1.User.find(), query);
-    const users = modelQuery
-        .search(constants_1.searchableFields)
-        .filter()
-        .sort()
-        .fields()
-        .pagination();
+    const users = modelQuery.search(constants_1.searchableFields).filter().sort().fields().pagination();
     const [data, meta] = yield Promise.all([users.build(), users.getMeta()]);
     return { data, meta };
 });
@@ -149,9 +145,7 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
         const isSelfUpdate = decodedToken.userId === userId;
         const requesterRole = decodedToken.role;
         if (payload.agentRequestStatus) {
-            if (payload.agentRequestStatus !== user_interface_1.AgentRequestStatus.PENDING &&
-                isSelfUpdate &&
-                requesterRole === user_interface_1.Role.USER)
+            if (payload.agentRequestStatus !== user_interface_1.AgentRequestStatus.PENDING && isSelfUpdate && requesterRole === user_interface_1.Role.USER)
                 throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You are not authorized");
         }
         if (payload.agentApprovedAt && requesterRole === user_interface_1.Role.USER)
@@ -161,10 +155,12 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
         new: true,
         runValidators: true,
     });
+    if (payload.profilePicture && isUserExist.profilePicture)
+        yield (0, cloudinary_config_1.deleteFromCloudinary)(isUserExist.profilePicture);
     return newUpdatedUser;
 });
 const getMe = (myId) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_model_1.User.findById(myId).select("-password");
+    const user = yield user_model_1.User.findById(myId).select("-password").populate({ path: "wallet" });
     return {
         data: user,
     };
@@ -173,5 +169,6 @@ exports.UserServices = {
     createUser,
     getAllUser,
     updateUser,
-    getSingleUser, getMe
+    getSingleUser,
+    getMe,
 };

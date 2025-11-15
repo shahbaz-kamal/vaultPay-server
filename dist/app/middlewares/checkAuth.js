@@ -20,7 +20,7 @@ const user_interface_1 = require("../modules/user/user.interface");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const jwt_1 = require("../utils/jwt");
 const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const accessToken = req.headers.authorization;
+    const accessToken = req.headers.authorization || req.cookies.accessToken;
     if (!accessToken)
         throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "No token received");
     const verifiedToken = (0, jwt_1.verifyToken)(accessToken, env_1.envVars.JWT_ACCESS_TOKEN_SECRET);
@@ -30,8 +30,12 @@ const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0
     });
     if (!isUserExist)
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User dosent exist");
-    if (isUserExist.isActive === user_interface_1.IsActive.BLOCKED)
+    if (isUserExist.isActive === user_interface_1.IsActive.BLOCKED || isUserExist.isActive === user_interface_1.IsActive.INACTIVE)
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, `User is ${isUserExist.isActive}`);
+    if (isUserExist.isDeleted)
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, `User is deleted`);
+    if (!isUserExist.isVerified)
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, `User is Not Verified`);
     if (!authRoles.includes(verifiedToken.role))
         throw new AppError_1.default(403, "you are not permitted to view this route");
     req.user = verifiedToken;

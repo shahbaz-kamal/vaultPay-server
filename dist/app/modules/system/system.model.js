@@ -12,5 +12,6 @@ const systemChargesSchema = new mongoose_1.Schema({
 const systemSchema = new mongoose_1.Schema({
     balance: { type: Number, required: true, default: 0 },
     systemCharges: { type: [systemChargesSchema] },
+    agentComimissionPayout: { type: Number, default: null },
 }, { versionKey: false, timestamps: true });
 exports.System = (0, mongoose_1.model)("System", systemSchema);

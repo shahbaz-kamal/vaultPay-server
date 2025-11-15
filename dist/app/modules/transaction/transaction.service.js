@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionService = void 0;
-const user_model_1 = require("./../user/user.model");
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const user_model_1 = require("./../user/user.model");
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
 const calculateTransactionFee_1 = require("../../utils/calculateTransactionFee");
 const generateTransactionId_1 = require("../../utils/generateTransactionId");
@@ -26,6 +26,9 @@ const system_model_1 = require("../system/system.model");
 const sslCommerze_service_1 = require("../sslCommerz/sslCommerze.service");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const constants_1 = require("../../constants");
+const generateInvoiceId_1 = require("../../utils/generateInvoiceId");
+const handleInvoiceSendAndUpload_1 = require("../../utils/handleInvoiceSendAndUpload");
+const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield transaction_model_1.Transaction.startSession();
     session.startTransaction();
@@ -43,10 +46,10 @@ const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fu
             throw new AppError_1.default(401, "You are not verified");
         if (isReceiverExist.isDeleted)
             throw new AppError_1.default(401, "Receiver is deleted");
-        if (!isReceiverExist.address)
-            throw new AppError_1.default(401, "Address should be updated in your profile through update user route to initialize add money");
-        if (!isReceiverExist.phone)
-            throw new AppError_1.default(401, "Phone number should be updated in your profile through update user route to initialize add money");
+        // if (!isReceiverExist.address)
+        //   throw new AppError(401, "Address should be updated in your profile through update user route to initialize add money");
+        // if (!isReceiverExist.phone)
+        //   throw new AppError(401, "Phone number should be updated in your profile through update user route to initialize add money");
         const transactionId = (0, generateTransactionId_1.generateTransactionId)();
         const transactionType = transaction_interface_1.TRANSACTION_TYPE.ADD_MONEY;
         const transactionSource = transaction_interface_1.TRANSACTION_SOURCE.SSLCOMMERZ;
@@ -75,7 +78,7 @@ const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fu
         yield session.commitTransaction();
         session.endSession();
         console.log("from add Money\n", payload);
-        return { paymeent: sslPayment.GatewayPageURL, result: transaction };
+        return { payment: sslPayment.GatewayPageURL, result: transaction };
     }
     catch (error) {
         console.log(error);
@@ -89,7 +92,7 @@ const addMoneySuccess = (query) => __awaiter(void 0, void 0, void 0, function* (
     session.startTransaction();
     try {
         //updating transaction wallet
-        const updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
+        let updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
             transactionId: query.transactionId,
         }, {
             status: transaction_interface_1.TRANSACTION_STATUS.COMPLETED,
@@ -112,6 +115,27 @@ const addMoneySuccess = (query) => __awaiter(void 0, void 0, void 0, function* (
         }, {
             balance: newBalance,
         }, { new: true, runValidators: true, session });
+        const invoiceData = {
+            invoiceId: (0, generateInvoiceId_1.generateInvoiceId)(),
+            transactionId: updatedTransaction.transactionId,
+            senderName: "SSLCommerze",
+            senderEmail: "",
+            transactionDate: updatedTransaction.createdAt,
+            receiverName: isReceiverExist.name,
+            receiverEmail: isReceiverExist.email,
+            transactionType: "Add Money",
+            totalAmount: Number(updatedTransaction.amount),
+            status: updatedTransaction.status,
+            notes: updatedTransaction.notes || "",
+        };
+        // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+        // invoice is uploaded and saved to cloudinary
+        const handleInvoiceResult = yield (0, handleInvoiceSendAndUpload_1.handleInvoiceSendAndUpload)(invoiceData, 1);
+        updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
+            transactionId: query.transactionId,
+        }, {
+            invoiceUrl: handleInvoiceResult.invoiceUrl,
+        }, { new: true, runValidators: true, session });
         yield session.commitTransaction();
         session.endSession();
         return { success: true, message: "Payment Completed successfully" };
@@ -120,6 +144,13 @@ const addMoneySuccess = (query) => __awaiter(void 0, void 0, void 0, function* (
         console.log(error);
         session.abortTransaction();
         session.endSession();
+        try {
+            yield transaction_model_1.Transaction.findOneAndDelete({ transactionId: query.transactionId });
+        }
+        catch (deleteError) {
+            console.error("Failed to delete transaction after rollback", deleteError);
+            // You might alert or log further here
+        }
     }
 });
 const addMoneyFail = (query) => __awaiter(void 0, void 0, void 0, function* () {
@@ -191,6 +222,11 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
         const transactionSource = transaction_interface_1.TRANSACTION_SOURCE.USER;
         const transactionStatus = transaction_interface_1.TRANSACTION_STATUS.PENDING;
         const transactionFee = yield (0, calculateTransactionFee_1.calculateSendMoney)();
+        // Updating systrem balance. for send money.
+        const system = yield system_model_1.System.findOne({}, null, { session });
+        const currentSystemBalance = system === null || system === void 0 ? void 0 : system.balance;
+        const newSystemBalance = currentSystemBalance + transactionFee;
+        yield system_model_1.System.findByIdAndUpdate(system === null || system === void 0 ? void 0 : system._id, { balance: newSystemBalance }, { session });
         payload.transactionId = transactionId;
         payload.type = transactionType;
         payload.source = transactionSource;
@@ -230,7 +266,31 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
         yield wallet_model_1.Wallet.findByIdAndUpdate(isReceiverExist.wallet, {
             balance: newWalletBalanceOfReceiver,
         }, { session });
-        const updatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, { status: transaction_interface_1.TRANSACTION_STATUS.COMPLETED }, { runValidators: true, new: true, session });
+        let updatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, { status: transaction_interface_1.TRANSACTION_STATUS.COMPLETED }, { runValidators: true, new: true, session });
+        if (!updatedTransaction)
+            throw new AppError_1.default(401, "Transaction not found");
+        const invoiceData = {
+            invoiceId: (0, generateInvoiceId_1.generateInvoiceId)(),
+            transactionId: updatedTransaction.transactionId,
+            senderName: isSenderExist.name,
+            senderEmail: isSenderExist.email,
+            transactionDate: updatedTransaction.createdAt,
+            receiverName: isReceiverExist.name,
+            receiverEmail: isReceiverExist.email,
+            transactionType: "Send Money",
+            totalAmount: Number(updatedTransaction.amount),
+            status: updatedTransaction.status,
+            notes: updatedTransaction.notes || "",
+        };
+        // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+        // invoice is uploaded and saved to cloudinary
+        const handleInvoiceResult = yield (0, handleInvoiceSendAndUpload_1.handleInvoiceSendAndUpload)(invoiceData, 2);
+        updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
+            transactionId: updatedTransaction.transactionId,
+        }, {
+            invoiceUrl: handleInvoiceResult.invoiceUrl,
+        }, { new: true, runValidators: true, session });
+        // return { success: true, message: "Payment Completed successfully" };
         yield session.commitTransaction();
         session.endSession();
         console.log("from add Money\n", payload);
@@ -275,11 +335,12 @@ const cashOut = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fun
         const transactionType = transaction_interface_1.TRANSACTION_TYPE.CASH_OUT;
         const transactionSource = transaction_interface_1.TRANSACTION_SOURCE.USER;
         const transactionStatus = transaction_interface_1.TRANSACTION_STATUS.PENDING;
-        const { sendMoneyCharge, agentCommission, systemProfit } = yield (0, calculateTransactionFee_1.calculateCashOutCharge)(payload.amount);
+        const { cashOutCharge, agentCommission, systemProfit } = yield (0, calculateTransactionFee_1.calculateCashOutCharge)(payload.amount);
+        console.log({ cashOutCharge, agentCommission, systemProfit });
         payload.transactionId = transactionId;
         payload.type = transactionType;
         payload.source = transactionSource;
-        payload.transactionFee = sendMoneyCharge;
+        payload.transactionFee = cashOutCharge;
         // if (typeof transactionFee !== "number" || isNaN(transactionFee)) {
         //   throw new AppError(500, "Transaction fee could not be calculated");
         // }
@@ -289,9 +350,6 @@ const cashOut = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fun
         payload.agentCommission = agentCommission;
         const transaction = yield transaction_model_1.Transaction.create([payload], { session });
         const amount = Number(payload.amount);
-        // if (isNaN(amount) || amount <= 0) {
-        //   throw new AppError(400, "Invalid amount");
-        // }
         const senderWallet = yield wallet_model_1.Wallet.findById(isSenderExist.wallet, null, {
             session,
         });
@@ -305,10 +363,10 @@ const cashOut = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fun
             throw new AppError_1.default(500, "Receiver wallet not found or has no balance");
         }
         //updating wallets of sender and receiver
-        if ((senderWallet === null || senderWallet === void 0 ? void 0 : senderWallet.balance) < amount + sendMoneyCharge) {
+        if ((senderWallet === null || senderWallet === void 0 ? void 0 : senderWallet.balance) < amount + cashOutCharge) {
             throw new AppError_1.default(401, "Insufficient Balance");
         }
-        const newWalletBalanceOfSender = (senderWallet === null || senderWallet === void 0 ? void 0 : senderWallet.balance) - (amount + sendMoneyCharge);
+        const newWalletBalanceOfSender = (senderWallet === null || senderWallet === void 0 ? void 0 : senderWallet.balance) - (amount + cashOutCharge);
         yield wallet_model_1.Wallet.findByIdAndUpdate(isSenderExist.wallet, {
             balance: newWalletBalanceOfSender,
         }, { session });
@@ -320,13 +378,43 @@ const cashOut = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fun
         const system = yield system_model_1.System.findOne({}, null, { session });
         const currentSystemBalance = system === null || system === void 0 ? void 0 : system.balance;
         const newSystemBalance = currentSystemBalance + systemProfit;
-        yield system_model_1.System.findByIdAndUpdate(system === null || system === void 0 ? void 0 : system._id, { balance: newSystemBalance }, { session });
-        const newTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, {
+        let newAgentComimissionPayout;
+        if (system === null || system === void 0 ? void 0 : system.agentComimissionPayout) {
+            newAgentComimissionPayout = (system === null || system === void 0 ? void 0 : system.agentComimissionPayout) + agentCommission;
+        }
+        else {
+            newAgentComimissionPayout = agentCommission;
+        }
+        yield system_model_1.System.findByIdAndUpdate(system === null || system === void 0 ? void 0 : system._id, { balance: newSystemBalance, agentComimissionPayout: newAgentComimissionPayout }, { session });
+        let updatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, {
             status: transaction_interface_1.TRANSACTION_STATUS.COMPLETED,
         }, { runValidators: true, new: true, session });
+        if (!updatedTransaction)
+            throw new AppError_1.default(401, "Transaction not found");
+        const invoiceData = {
+            invoiceId: (0, generateInvoiceId_1.generateInvoiceId)(),
+            transactionId: updatedTransaction.transactionId,
+            senderName: isSenderExist.name,
+            senderEmail: isSenderExist.email,
+            transactionDate: updatedTransaction.createdAt,
+            receiverName: isReceiverExist.name,
+            receiverEmail: isReceiverExist.email,
+            transactionType: "Cash Out",
+            totalAmount: Number(updatedTransaction.amount),
+            status: updatedTransaction.status,
+            notes: updatedTransaction.notes || "",
+        };
+        // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+        // invoice is uploaded and saved to cloudinary
+        const handleInvoiceResult = yield (0, handleInvoiceSendAndUpload_1.handleInvoiceSendAndUpload)(invoiceData, 2);
+        updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
+            transactionId: updatedTransaction.transactionId,
+        }, {
+            invoiceUrl: handleInvoiceResult.invoiceUrl,
+        }, { new: true, runValidators: true, session });
         yield session.commitTransaction();
         session.endSession();
-        return newTransaction;
+        return updatedTransaction;
     }
     catch (error) {
         console.log(error);
@@ -366,6 +454,7 @@ const cashIn = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         const transactionSource = transaction_interface_1.TRANSACTION_SOURCE.AGENT;
         const transactionStatus = transaction_interface_1.TRANSACTION_STATUS.PENDING;
         const transactionFee = yield (0, calculateTransactionFee_1.calculateCashInCharge)();
+        console.log("From Transaction Fee", transactionFee);
         payload.transactionId = transactionId;
         payload.type = transactionType;
         payload.source = transactionSource;
@@ -376,12 +465,8 @@ const cashIn = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         payload.status = transactionStatus;
         payload.senderId = isSenderExist._id;
         payload.receiverId = isReceiverExist._id;
-        // payload.agentCommission = agentCommission;
         const transaction = yield transaction_model_1.Transaction.create([payload], { session });
         const amount = Number(payload.amount);
-        // if (isNaN(amount) || amount <= 0) {
-        //   throw new AppError(400, "Invalid amount");
-        // }
         const senderWallet = yield wallet_model_1.Wallet.findById(isSenderExist.wallet, null, {
             session,
         });
@@ -406,21 +491,35 @@ const cashIn = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         yield wallet_model_1.Wallet.findByIdAndUpdate(isReceiverExist.wallet, {
             balance: newWalletBalanceOfReceiver,
         }, { session });
-        //updating system balance
-        // const system = await System.findOne({}, null, { session });
-        // const currentSystemBalance = system?.balance as number;
-        // const newSystemBalance = currentSystemBalance + systemProfit;
-        // await System.findByIdAndUpdate(
-        //   system?._id,
-        //   { balance: newSystemBalance },
-        //   { session }
-        // );
-        const newTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, {
+        let updatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(transaction[0]._id, {
             status: transaction_interface_1.TRANSACTION_STATUS.COMPLETED,
         }, { runValidators: true, new: true, session });
+        if (!updatedTransaction)
+            throw new AppError_1.default(401, "Transaction not found");
+        const invoiceData = {
+            invoiceId: (0, generateInvoiceId_1.generateInvoiceId)(),
+            transactionId: updatedTransaction.transactionId,
+            senderName: isSenderExist.name,
+            senderEmail: isSenderExist.email,
+            transactionDate: updatedTransaction.createdAt,
+            receiverName: isReceiverExist.name,
+            receiverEmail: isReceiverExist.email,
+            transactionType: "Cash In",
+            totalAmount: Number(updatedTransaction.amount),
+            status: updatedTransaction.status,
+            notes: updatedTransaction.notes || "",
+        };
+        // this return {success: true, invoiceUrl: cloudinaryResult.secure_url};
+        // invoice is uploaded and saved to cloudinary
+        const handleInvoiceResult = yield (0, handleInvoiceSendAndUpload_1.handleInvoiceSendAndUpload)(invoiceData, 2);
+        updatedTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({
+            transactionId: updatedTransaction.transactionId,
+        }, {
+            invoiceUrl: handleInvoiceResult.invoiceUrl,
+        }, { new: true, runValidators: true, session });
         yield session.commitTransaction();
         session.endSession();
-        return newTransaction;
+        return updatedTransaction;
     }
     catch (error) {
         console.log(error);
@@ -430,23 +529,14 @@ const cashIn = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const getAllTransaction = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const modelQuery = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find()
-        .populate("senderId", "name email role isActive")
-        .populate("receiverId", "name email role isActive"), query);
-    const transactions = modelQuery
-        .search(constants_1.searchableFields)
-        .filter()
-        .sort()
-        .fields()
-        .pagination();
-    const [data, meta] = yield Promise.all([
-        transactions.build(),
-        transactions.getMeta(),
-    ]);
+    const modelQuery = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find().populate("senderId", "name email role isActive").populate("receiverId", "name email role isActive"), query);
+    const transactions = modelQuery.search(constants_1.searchableFields).filter().sort().fields().pagination();
+    const [data, meta] = yield Promise.all([transactions.build(), transactions.getMeta()]);
     return { data, meta };
 });
 const getMyTransactions = (decodedToken, query) => __awaiter(void 0, void 0, void 0, function* () {
     const myId = decodedToken.userId;
+    const myEmail = decodedToken.email;
     const isMyDataExist = yield user_model_1.User.findById(myId);
     if (!isMyDataExist)
         throw new AppError_1.default(401, "Your Data is not found. Please contact our support team.");
@@ -459,17 +549,17 @@ const getMyTransactions = (decodedToken, query) => __awaiter(void 0, void 0, voi
     })
         .populate("senderId", "name email role isActive")
         .populate("receiverId", "name email role isActive"), query);
-    const myTransactions = modelQuery
-        .dateFiltering()
-        .search(constants_1.searchableFields)
-        .sort()
-        .fields()
-        .pagination();
-    const [data, meta] = yield Promise.all([
-        myTransactions.build(),
-        myTransactions.getMeta(),
-    ]);
+    const myTransactions = modelQuery.dateFiltering().search(constants_1.searchableFields).sort().fields().pagination();
+    const [data, meta] = yield Promise.all([myTransactions.build(), myTransactions.getMeta()]);
+    // console.log(data.length)
+    // console.log(data)
     return { data, meta };
+});
+const getSingleTransaction = (transactionId) => __awaiter(void 0, void 0, void 0, function* () {
+    const transaction = transaction_model_1.Transaction.findOne({ transactionId });
+    if (!transaction)
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "This Transaction dosent Exist");
+    return transaction;
 });
 exports.TransactionService = {
     addMoney,
@@ -480,5 +570,5 @@ exports.TransactionService = {
     cashOut,
     cashIn,
     getAllTransaction,
-    getMyTransactions,
+    getMyTransactions, getSingleTransaction
 };

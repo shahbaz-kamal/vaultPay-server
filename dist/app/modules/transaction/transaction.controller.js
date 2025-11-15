@@ -110,6 +110,17 @@ const getMyTransactions = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
         meta: result === null || result === void 0 ? void 0 : result.meta,
     });
 }));
+const getSingleTransaction = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const transactionId = req.query.transactionId;
+    console.log("From single transactoion", transactionId);
+    const result = yield transaction_service_1.TransactionService.getSingleTransaction(transactionId);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.OK,
+        message: "Your Transaction data has been received",
+        data: result,
+    });
+}));
 exports.TransactionController = {
     addMoney,
     addMoneySuccess,
@@ -119,5 +130,5 @@ exports.TransactionController = {
     cashOut,
     cashIn,
     getAllTransaction,
-    getMyTransactions,
+    getMyTransactions, getSingleTransaction
 };

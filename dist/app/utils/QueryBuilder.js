@@ -52,7 +52,7 @@ class QueryBuilder {
     }
     pagination() {
         const pageNumber = Number(this.query.page) || 1;
-        const limit = Number(this.query.limit) || 10;
+        const limit = Number(this.query.limit);
         const skip = (pageNumber - 1) * limit;
         this.modelQuery = this.modelQuery.limit(limit).skip(skip);
         return this;
@@ -87,12 +87,13 @@ class QueryBuilder {
     }
     getMeta() {
         return __awaiter(this, void 0, void 0, function* () {
-            const totalDocuments = yield this.modelQuery.model.countDocuments();
             const limit = Number(this.query.limit) || 10;
             const pageNumber = Number(this.query.page) || 1;
-            const totalPage = Math.ceil(totalDocuments / limit);
+            const totalDocuments = yield this.modelQuery.model.countDocuments();
             const filter = this.modelQuery.getFilter();
+            console.log("filtered object", filter);
             const noOfMatchedDocuments = yield this.modelQuery.model.countDocuments(filter);
+            const totalPage = Math.ceil(noOfMatchedDocuments / limit);
             const meta = {
                 totalDocuments,
                 noOfMatchedDocuments,

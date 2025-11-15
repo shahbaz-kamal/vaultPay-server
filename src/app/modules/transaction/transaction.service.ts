@@ -68,8 +68,8 @@ const addMoney = async (payload: Partial<ITransaction>, decodedToken: JwtPayload
       name: isReceiverExist.name,
       email: isReceiverExist.email,
       amount,
-      address: isReceiverExist.address,
-      phoneNumber: isReceiverExist.phone,
+      address: isReceiverExist.address as string,
+      phoneNumber: isReceiverExist.phone as string,
     };
     const sslPayment = await SSLService.sslAddMoneyInit(sslPayload);
 

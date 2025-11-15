@@ -22,19 +22,32 @@ export const uploadBufferToCloudinary = async (buffer: Buffer, fileName: string)
       const public_id = `pdf/${fileName}-${Date.now()}`;
       const bufferStream = new stream.PassThrough();
       bufferStream.end(buffer);
-      cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: "auto",
-            public_id,
-            folder: "pdf",
-          },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        )
-        .end(buffer);
+      // cloudinary.uploader
+      //   .upload_stream(
+      //     {
+      //       resource_type: "auto",
+      //       public_id,
+      //       folder: "pdf",
+      //     },
+      //     (error, result) => {
+      //       if (error) return reject(error);
+      //       resolve(result);
+      //     }
+      //   )
+      //   .end(buffer);
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: "auto",
+          public_id,
+          folder: "pdf",
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          if (!result) return reject(new Error("Cloudinary upload returned undefined"));
+          resolve(result); // now TS knows result is not undefined
+        }
+      ).end(bufferStream);
+      
     });
   } catch (error) {
     console.log(error);

@@ -34,6 +34,19 @@ const loadEnvironmentVariables = () => {
         "SSL_SUCCESS_BACKEND_URL",
         "SSL_FAIL_BACKEND_URL",
         "SSL_CANCEL_BACKEND_URL",
+        "CLOUDINARY_CLOUD_NAME",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASS",
+        "SMTP_FROM",
+        "REDIS_PASSWORD",
+        "REDIS_USERNAME",
+        "REDIS_PORT",
+        "REDIS_HOST",
+        "REDIS_OTP_EXPIRATION_TIME",
     ];
     requiredVariables.forEach((key) => {
         if (!process.env[key]) {
@@ -46,11 +59,9 @@ const loadEnvironmentVariables = () => {
         NODE_ENV: process.env.NODE_ENV,
         BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND,
         JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET,
-        JWT_ACCESS_TOKEN_EXPIRES_IN: process.env
-            .JWT_ACCESS_TOKEN_EXPIRES_IN,
+        JWT_ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
         JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET,
-        JWT_REFRESH_TOKEN_EXPIRES_IN: process.env
-            .JWT_REFRESH_TOKEN_EXPIRES_IN,
+        JWT_REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
         SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL,
         SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD,
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
@@ -70,6 +81,25 @@ const loadEnvironmentVariables = () => {
             SUCCESS_BACKEND_URL: process.env.SSL_SUCCESS_BACKEND_URL,
             FAIL_BACKEND_URL: process.env.SSL_FAIL_BACKEND_URL,
             CANCEL_BACKEND_URL: process.env.SSL_CANCEL_BACKEND_URL,
+        },
+        CLOUDINARY: {
+            CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+            API_KEY: process.env.CLOUDINARY_API_KEY,
+            API_SECRET: process.env.CLOUDINARY_API_SECRET,
+        },
+        EMAIL_SENDER: {
+            SMTP_HOST: process.env.SMTP_HOST,
+            SMTP_PORT: process.env.SMTP_PORT,
+            SMTP_USER: process.env.SMTP_USER,
+            SMTP_PASS: process.env.SMTP_PASS,
+            SMTP_FROM: process.env.SMTP_FROM,
+        },
+        REDIS: {
+            HOST: process.env.REDIS_HOST,
+            PORT: process.env.REDIS_PORT,
+            USERNAME: process.env.REDIS_USERNAME,
+            PASSWORD: process.env.REDIS_PASSWORD,
+            OTP_EXPIRATION_TIME: process.env.REDIS_OTP_EXPIRATION_TIME,
         },
     };
 };

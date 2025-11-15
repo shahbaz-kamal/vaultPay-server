@@ -19,11 +19,15 @@ const handleDuplicateError_1 = require("../helpers/handleDuplicateError");
 const handleCastError_1 = require("../helpers/handleCastError");
 const handleZodError_1 = require("../helpers/handleZodError");
 const handleValidationError_1 = require("../helpers/handleValidationError");
+const cloudinary_config_1 = require("../config/cloudinary.config");
 const globalErrorHandler = (
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 error, req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (env_1.envVars.NODE_ENV === "development") {
         console.log("From error===>", error);
+    }
+    if (req.file) {
+        yield (0, cloudinary_config_1.deleteFromCloudinary)(req.file.path);
     }
     let statusCode = 500;
     let message = `Something went Wrong!!`;

@@ -12,7 +12,6 @@ exports.createUserZodSchema = zod_1.default.object({
         .min(2, "Name should be at least minimum of two characters")
         .max(50, "Name should be maximum of 50 characters"),
     email: zod_1.default
-        .string("Email Must be string")
         .email("Invalid Email Format")
         .min(2, "Email should be at least minimum of two characters")
         .max(50, "Email should be maximum of 50 characters"),
@@ -44,7 +43,7 @@ exports.updateUserZodSchema = zod_1.default.object({
         .string("Phone number must be a string")
         .regex(/^(\+8801[3-9][0-9]{8}|01[3-9][0-9]{8})$/, "Invalid Bangladeshi phone number format")
         .optional(),
-    profilePicture: zod_1.default.string("Photo must be string").optional(),
+    profilePicture: zod_1.default.string("Photo link must be string").optional(),
     address: zod_1.default
         .string("Address must be string")
         .max(200, {
@@ -55,9 +54,7 @@ exports.updateUserZodSchema = zod_1.default.object({
     isActive: zod_1.default.enum(Object.values(user_interface_1.IsActive)).optional(),
     isDeleted: zod_1.default.boolean("isDeleted Must be true or false.").optional(),
     isVerified: zod_1.default.boolean("isVerified Must be true or false.").optional(),
-    agentRequestStatus: zod_1.default
-        .enum(Object.values(user_interface_1.AgentRequestStatus))
-        .optional(),
+    agentRequestStatus: zod_1.default.enum(Object.values(user_interface_1.AgentRequestStatus)).optional(),
     agentRequestedAt: zod_1.default.date().optional(),
     agentApprovedAt: zod_1.default.date().optional(),
 });

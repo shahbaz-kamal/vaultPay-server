@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>OTP Verification</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 520px;
+        background: #ffffff;
+        margin: 50px auto;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #007bff, #00a8ff);
+        color: #fff;
+        text-align: center;
+        padding: 25px 15px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+      }
+
+      .content {
+        padding: 30px;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      .content h2 {
+        color: #111;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      .content p {
+        font-size: 15px;
+        color: #555;
+      }
+
+      .otp {
+        display: inline-block;
+        font-size: 28px;
+        font-weight: bold;
+        background: #f0f0f0;
+        padding: 10px 25px;
+        border-radius: 6px;
+        margin: 20px 0;
+        letter-spacing: 6px;
+        color: #007bff;
+      }
+
+      .footer {
+        background: #f0f3f6;
+        text-align: center;
+        font-size: 13px;
+        color: #777;
+        padding: 15px;
+      }
+
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .header img {
+        width: 50px;
+        height: 28.5px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        /* box-shadow: 0 2px 6px rgba(255, 255, 255, 0.3); */
+      }
+      .header {
+        display: flex;
+        /* align-items: center; */
+        justify-content: center;
+        gap: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="https://i.ibb.co.com/yFg26sk5/logo.png" alt="VaultPay Logo" />
+        <h1>VaultPay</h1>
+      </div>
+
+      <div class="content">
+        <h2>OTP Verification</h2>
+        <p>Hello <%= name %>,</p>
+        <p>Your One-Time Password (OTP) for VaultPay is:</p>
+        <div class="otp"><%= otp %></div>
+        <p>This OTP is valid for <strong><%= otpExpirationTime %></strong> minutes. Please do not share it with anyone.</p>
+      </div>
+
+      <div class="footer">&copy; <%= new Date().getFullYear() %> VaultPay. All rights reserved.</div>
+    </div>
+  </body>
+</html>

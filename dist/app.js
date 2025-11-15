@@ -28,8 +28,9 @@ exports.app.use(passport_1.default.initialize());
 exports.app.use(passport_1.default.session());
 exports.app.set("trust proxy", 1);
 exports.app.use(express_1.default.json());
+exports.app.use(express_1.default.urlencoded({ extended: true }));
 exports.app.use((0, cors_1.default)({
-    origin: ["http://localhost:5173", "https://vault-pay-server.vercel.app"],
+    origin: ["http://localhost:5173", "https://vault-pay-server.vercel.app", "http://localhost:3000"],
     credentials: true,
 }));
 exports.app.use(logger_1.logger);

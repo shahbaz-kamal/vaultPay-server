@@ -53,11 +53,14 @@ const getAllUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(vo
     });
 }));
 const updateUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const userId = req.params.id;
     const verifiedToken = req.user;
-    const payload = req.body;
+    const payload = Object.assign(Object.assign({}, req.body), { profilePicture: (_a = req.file) === null || _a === void 0 ? void 0 : _a.path });
+    // console.log("Checking cloudinary. FIle has been uploaded to cloudinary\n",payload)
+    // throw new AppError(401,"Fake Error")
     const user = yield user_service_1.UserServices.updateUser(userId, payload, verifiedToken);
-    console.log("From user===>", user);
+    // console.log("From file upload===>", { file: req.file, body: payload });
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,

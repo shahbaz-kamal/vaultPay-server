@@ -39,11 +39,11 @@ export const changePassword = async (oldPassword: string, newPassword: string, d
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
-  const isOldPasswordMatched = await bcryptJs.compare(oldPassword, user?.password as string);
+  const isOldPasswordMatched = await bcryptjs.compare(oldPassword, user?.password as string);
   if (!isOldPasswordMatched) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Old Password Dosent match");
   }
-  user.password = await bcryptJs.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND));
+  user.password = await bcryptjs.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND));
   user.save();
 };
 

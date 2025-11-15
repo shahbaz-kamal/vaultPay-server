@@ -16,7 +16,7 @@ const calculateSendMoney = () => __awaiter(void 0, void 0, void 0, function* () 
     const system = yield system_model_1.System.find();
     const sendMoneyData = system[0].systemCharges.filter((singleType) => singleType.type === transaction_interface_1.TRANSACTION_TYPE.SEND_MONEY);
     const sendMoneyCharge = sendMoneyData[0].charge;
-    console.log(sendMoneyCharge, "send money charge");
+    // console.log(sendMoneyCharge, "send money charge");
     return sendMoneyCharge;
 });
 exports.calculateSendMoney = calculateSendMoney;
@@ -24,15 +24,14 @@ const calculateCashOutCharge = (amount) => __awaiter(void 0, void 0, void 0, fun
     const system = yield system_model_1.System.find();
     const cashOutData = system[0].systemCharges.filter((singleType) => singleType.type === transaction_interface_1.TRANSACTION_TYPE.CASH_OUT);
     const informationObject = cashOutData[0];
-    const sendMoneyCharge = (informationObject.charge /
+    const cashOutCharge = (informationObject.charge /
         Number(informationObject.perAmountTransaction)) *
         amount;
     const agentCommission = (Number(informationObject.agentCommission) /
         Number(informationObject.perAmountTransaction)) *
         amount;
-    const systemProfit = sendMoneyCharge - agentCommission;
-    console.log(sendMoneyCharge, "send money charge");
-    return { sendMoneyCharge, agentCommission, systemProfit };
+    const systemProfit = cashOutCharge - agentCommission;
+    return { cashOutCharge, agentCommission, systemProfit };
 });
 exports.calculateCashOutCharge = calculateCashOutCharge;
 const calculateCashInCharge = () => __awaiter(void 0, void 0, void 0, function* () {

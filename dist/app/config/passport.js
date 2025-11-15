@@ -31,6 +31,13 @@ passport_1.default.use(new passport_local_1.Strategy({
             return done(null, false, {
                 message: `User having email:${email}, does not exist`,
             });
+        if (!isUserExist.isVerified)
+            return done("User is Not Verified");
+        if (isUserExist.isActive === user_interface_1.IsActive.BLOCKED ||
+            isUserExist.isActive === user_interface_1.IsActive.INACTIVE)
+            return done(`User is ${isUserExist.isActive}`);
+        if (isUserExist.isDeleted)
+            return done("User is deleted");
         const isGoogleAuthenticated = isUserExist.auths.some((providerObject) => providerObject.provider === "google");
         if (isGoogleAuthenticated && !isUserExist.password)
             return done(null, false, {
@@ -63,8 +70,16 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
             session.endSession();
             return done(null, false, { message: "No Email Found" });
         }
-        let user = yield user_model_1.User.findOne({ email }).session(session);
-        if (!user) {
+        let isUserExist = yield user_model_1.User.findOne({ email }).session(session);
+        if (isUserExist && !isUserExist.isVerified)
+            return done(null, false, { message: "User is Not Verified" });
+        if (isUserExist &&
+            (isUserExist.isActive === user_interface_1.IsActive.BLOCKED ||
+                isUserExist.isActive === user_interface_1.IsActive.INACTIVE))
+            return done(null, false, { message: `User is ${isUserExist.isActive}` });
+        if (isUserExist && isUserExist.isDeleted)
+            return done(null, false, { message: "User is deleted" });
+        if (!isUserExist) {
             const newUser = yield user_model_1.User.create([
                 {
                     name: profile.displayName,
@@ -75,15 +90,17 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
                     auths: [{ provider: "google", providerId: profile.id }],
                 },
             ], { session });
-            user = newUser[0];
+            isUserExist = newUser[0];
             // await newUser.save({ session });
-            const wallet = yield wallet_model_1.Wallet.create([{ user: user._id }], { session });
-            user.wallet = wallet[0]._id;
-            yield user.save({ session });
+            const wallet = yield wallet_model_1.Wallet.create([{ user: isUserExist._id }], {
+                session,
+            });
+            isUserExist.wallet = wallet[0]._id;
+            yield isUserExist.save({ session });
         }
         yield session.commitTransaction();
         session.endSession();
-        return done(null, user);
+        return done(null, isUserExist);
     }
     catch (error) {
         console.log("Google strategy error", error);
