@@ -12,8 +12,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 
 import bcryptJs from "bcryptjs";
 import { Wallet } from "../modules/wallet/wallet.model";
-import httpStatus from "http-status-codes";
-import AppError from "../errorHelpers/AppError";
+
 
 passport.use(
   new LocalStrategy(
