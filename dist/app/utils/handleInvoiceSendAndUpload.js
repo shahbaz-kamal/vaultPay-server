@@ -28,7 +28,7 @@ const handleInvoiceSendAndUpload = (invoiceData_1, ...args_1) => __awaiter(void 
         emailRecievers.push(invoiceData.receiverEmail);
         if (numberOfEmailRecipients === 2 && invoiceData.senderEmail)
             emailRecievers.push(invoiceData.senderEmail);
-        emailRecievers.forEach((email) => __awaiter(void 0, void 0, void 0, function* () {
+        for (const email of emailRecievers) {
             yield (0, sendEmail_1.sendEmail)({
                 to: email,
                 subject: "Your Transaction Invoice",
@@ -42,11 +42,12 @@ const handleInvoiceSendAndUpload = (invoiceData_1, ...args_1) => __awaiter(void 
                     },
                 ],
             });
-        }));
+        }
         return { success: true, invoiceUrl: cloudinaryResult.secure_url };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }
     catch (error) {
+        console.log("Invoice generation error", error);
         throw new AppError_1.default(500, "Invoice generation failed");
     }
 });

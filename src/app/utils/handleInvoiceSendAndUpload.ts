@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { uploadBufferToCloudinary } from "../config/cloudinary.config";
+import { ICloudinaryUploadResults, uploadBufferToCloudinary } from "../config/cloudinary.config";
 import AppError from "../errorHelpers/AppError";
 import { generatePdf, IInvoiceData } from "./invoice";
 import { sendEmail } from "./sendEmail";
@@ -7,7 +7,7 @@ import { sendEmail } from "./sendEmail";
 export const handleInvoiceSendAndUpload = async (invoiceData: IInvoiceData, numberOfEmailRecipients = 1) => {
   try {
     const pdfBuffer = await generatePdf(invoiceData);
-    const cloudinaryResult = await uploadBufferToCloudinary(pdfBuffer, `invoice-${invoiceData.invoiceId}`);
+    const cloudinaryResult = await uploadBufferToCloudinary(pdfBuffer, `invoice-${invoiceData.invoiceId}`) as ICloudinaryUploadResults;
     // console.log("cloudinary result:", cloudinaryResult);
     const emailRecievers = [];
 
@@ -15,7 +15,7 @@ export const handleInvoiceSendAndUpload = async (invoiceData: IInvoiceData, numb
     emailRecievers.push(invoiceData.receiverEmail);
     if (numberOfEmailRecipients === 2 && invoiceData.senderEmail) emailRecievers.push(invoiceData.senderEmail);
 
-    emailRecievers.forEach(async (email) => {
+    for (const email of emailRecievers) {
       await sendEmail({
         to: email,
         subject: "Your Transaction Invoice",
@@ -29,11 +29,12 @@ export const handleInvoiceSendAndUpload = async (invoiceData: IInvoiceData, numb
           },
         ],
       });
-    });
+    }
 
-    return { success: true, invoiceUrl: cloudinaryResult.secure_url };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error:any) {
+    return { success: true, invoiceUrl: cloudinaryResult.secure_url  };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.log("Invoice generation error",error)
     throw new AppError(500, "Invoice generation failed");
   }
 };

@@ -43,5 +43,4 @@ router.get("/google", (req, res, next) => __awaiter(void 0, void 0, void 0, func
 router.get("/google/callback", passport_1.default.authenticate("google", {
     failureRedirect: `${env_1.envVars.FRONTEND_URL}/login?error=There is some issues with your account. Please contact Our Support team`,
 }), auth_controller_1.AuthControllers.googleCallbackController);
-// router.post("/get-all-users",A)
 exports.AuthRoutes = router;

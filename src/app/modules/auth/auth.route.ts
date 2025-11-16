@@ -38,6 +38,6 @@ router.get(
   }),
   AuthControllers.googleCallbackController
 );
-// router.post("/get-all-users",A)
+
 
 export const AuthRoutes = router;
