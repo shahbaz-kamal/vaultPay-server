@@ -1,6 +1,8 @@
+import { System } from "../system/system.model";
 import { Transaction } from "../transaction/transaction.model";
 import { IsActive, Role } from "../user/user.interface";
 import { User } from "../user/user.model";
+import { Wallet } from "../wallet/wallet.model";
 
 const now = new Date();
 const sevenDaysAgo = new Date(now).setDate(now.getDate() - 7);
@@ -68,10 +70,36 @@ const getStatsForAdmin = async () => {
     totalInactiveAgents,
   };
 
-//// TransactionOverview
+  //// SystemBalanceAndRevenuew
+
+  const systemPromise = System.findOne({});
+  const averageUserWalletBalancePromise = Wallet.aggregate([
+    // stage 1:
+    {
+      $group: {
+        _id: null,
+        avg: { $avg: "$balance" },
+      },
+    },
+  ]);
+
+  const [systemDoc, averageUserWalletBalance] = await Promise.all([systemPromise, averageUserWalletBalancePromise]);
+
+  const systemBalance = systemDoc?.balance;
+  const agentComimissionPayout = systemDoc?.agentComimissionPayout;
+  // console.log(averageUserWalletBalance)
+  let totalSystemRevenue = 0;
+  if (systemBalance && systemBalance > 50) totalSystemRevenue = systemBalance - 50;
+  const systemBalanceAndRevenue = {
+    systemBalance,
+    averageUserWalletBalance: averageUserWalletBalance[0].avg,
+    totalSystemRevenue,
+    agentComimissionPayout,
+  };
 
   return {
     userAndAgentOverview,
+    systemBalanceAndRevenue,
   };
 };
 
