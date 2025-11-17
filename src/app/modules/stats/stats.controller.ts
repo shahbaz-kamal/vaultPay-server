@@ -5,13 +5,13 @@ import { StatsService } from "./stats.service";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
 
-const getUserStatsForAdmin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const userStats = await StatsService.getUserStatsForAdmin();
+const getStatsForAdmin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const userStats = await StatsService.getStatsForAdmin();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Retrived User Data Successfully",
+    message: "Retrived Required Data For Admin",
     data: userStats,
   });
 });
@@ -43,4 +43,4 @@ const userId=decodedToken.userId
   });
 });
 
-export const StatsController = { getUserStatsForAdmin,getTransactionStatsForAdmin,getTransactionStatsForUser };
+export const StatsController = { getStatsForAdmin,getTransactionStatsForAdmin,getTransactionStatsForUser };

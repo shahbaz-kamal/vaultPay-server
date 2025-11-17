@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 //For Admin
-router.get("/user", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getUserStatsForAdmin);
+router.get("/admin", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getStatsForAdmin);
 router.get("/transaction", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getTransactionStatsForAdmin);
 
 // FOr User

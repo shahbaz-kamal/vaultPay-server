@@ -8,45 +8,70 @@ const fifteenDaysAgo = new Date(now).setDate(now.getDate() - 15);
 const thirtyDaysAgo = new Date(now).setDate(now.getDate() - 30);
 const sixtyDaysAgo = new Date(now).setDate(now.getDate() - 60);
 
-const getUserStatsForAdmin = async () => {
+const getStatsForAdmin = async () => {
+  //// user And Agent Overview
   const totalUsersPromise = User.countDocuments({ role: Role.USER });
+  const totalAgentsPromise = User.countDocuments({ role: Role.AGENT });
+  const newUsersInLastSevenDaysPromise = User.countDocuments({ createdAt: { $gte: sevenDaysAgo }, role: Role.USER });
+  const newUsersInLastThirtyDaysPromise = User.countDocuments({ createdAt: { $gte: thirtyDaysAgo }, role: Role.USER });
+  const newUsersInLastSixtyDaysPromise = User.countDocuments({ createdAt: { $gte: sixtyDaysAgo }, role: Role.USER });
+  const newAgentsInLastSevenDaysPromise = User.countDocuments({ createdAt: { $gte: sevenDaysAgo }, role: Role.AGENT });
+  const newAgentsInLastThirtyDaysPromise = User.countDocuments({ createdAt: { $gte: thirtyDaysAgo }, role: Role.AGENT });
+  const newAgentsInLastSixtyDaysPromise = User.countDocuments({ createdAt: { $gte: sixtyDaysAgo }, role: Role.AGENT });
+
   const totalActiveUsersPromise = User.countDocuments({ isActive: IsActive.ACTIVE, role: Role.USER });
   const totalInactiveUsersPromise = User.countDocuments({ isActive: IsActive.INACTIVE, role: Role.USER });
-  const newUsersInLastSevenDaysPromise = User.countDocuments({ createdAt: { $gte: sevenDaysAgo }, role: Role.USER });
 
-  const totalAgentsPromise = User.countDocuments({ role: Role.AGENT });
   const totalActiveAgentsPromise = User.countDocuments({ isActive: IsActive.ACTIVE, role: Role.AGENT });
   const totalInactiveAgentsPromise = User.countDocuments({ isActive: IsActive.INACTIVE, role: Role.AGENT });
-  const newAgentsInLastSevenDaysPromise = User.countDocuments({ createdAt: { $gte: sevenDaysAgo }, role: Role.AGENT });
 
   const [
     totalUsers,
+    totalAgents,
+    newUsersInLastSevenDays,
+    newUsersInLastThirtyDays,
+    newUsersInLastSixtyDays,
+    newAgentsInLastSevenDays,
+    newAgentsInLastThirtyDays,
+    newAgentsInLastSixtyDays,
     totalActiveUsers,
     totalInactiveUsers,
-    newUsersInLastSevenDays,
-    totalAgents,
     totalActiveAgents,
     totalInactiveAgents,
-    newAgentsInLastSevenDays,
   ] = await Promise.all([
     totalUsersPromise,
+    totalAgentsPromise,
+    newUsersInLastSevenDaysPromise,
+    newUsersInLastThirtyDaysPromise,
+    newUsersInLastSixtyDaysPromise,
+    newAgentsInLastSevenDaysPromise,
+    newAgentsInLastThirtyDaysPromise,
+    newAgentsInLastSixtyDaysPromise,
     totalActiveUsersPromise,
     totalInactiveUsersPromise,
-    newUsersInLastSevenDaysPromise,
-    totalAgentsPromise,
     totalActiveAgentsPromise,
     totalInactiveAgentsPromise,
-    newAgentsInLastSevenDaysPromise,
   ]);
-  return {
+
+  const userAndAgentOverview = {
     totalUsers,
+    totalAgents,
+    newUsersInLastSevenDays,
+    newUsersInLastThirtyDays,
+    newUsersInLastSixtyDays,
+    newAgentsInLastSevenDays,
+    newAgentsInLastThirtyDays,
+    newAgentsInLastSixtyDays,
     totalActiveUsers,
     totalInactiveUsers,
-    newUsersInLastSevenDays,
-    totalAgents,
     totalActiveAgents,
     totalInactiveAgents,
-    newAgentsInLastSevenDays,
+  };
+
+//// TransactionOverview
+
+  return {
+    userAndAgentOverview,
   };
 };
 
@@ -71,15 +96,15 @@ const getTransactionStatsForAdmin = async () => {
 
   //   5. Average payment amount
 
-  const avgTransactionAmountPromise= Transaction.aggregate([
+  const avgTransactionAmountPromise = Transaction.aggregate([
     //stage 1: Group
     {
-        $group:{
-            _id:null,
-            avgTransactionAmount:{$avg:"$amount"}
-        }
-    }
-  ])
+      $group: {
+        _id: null,
+        avgTransactionAmount: { $avg: "$amount" },
+      },
+    },
+  ]);
 
   // 6. Transactions in last 7, 15, 30, 60 days
   const recentTransactionsPromise = Transaction.aggregate([
@@ -105,16 +130,15 @@ const getTransactionStatsForAdmin = async () => {
     },
   ]);
 
-
-
-  const [totalTransactions, transactionsByType, transactionsByStatus, transactionsBySource,avgTransactionAmount, recentTransactions] = await Promise.all([
-    totalTransactionsPromise,
-    transactionsByTypePromise,
-    transactionsByStatusPromise,
-    transactionsBySourcePromise,
-    avgTransactionAmountPromise,
-    recentTransactionsPromise,
-  ]);
+  const [totalTransactions, transactionsByType, transactionsByStatus, transactionsBySource, avgTransactionAmount, recentTransactions] =
+    await Promise.all([
+      totalTransactionsPromise,
+      transactionsByTypePromise,
+      transactionsByStatusPromise,
+      transactionsBySourcePromise,
+      avgTransactionAmountPromise,
+      recentTransactionsPromise,
+    ]);
 
   return {
     totalTransactions, // number
@@ -145,13 +169,11 @@ const getTransactionStatsForAdmin = async () => {
 
 //agents
 
-
 //users
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getTransactionStatsForUser=async(userId:string)=>{
-  
-return {}
-}
+const getTransactionStatsForUser = async (userId: string) => {
+  return {};
+};
 
-export const StatsService = { getUserStatsForAdmin, getTransactionStatsForAdmin ,getTransactionStatsForUser};
+export const StatsService = { getStatsForAdmin, getTransactionStatsForAdmin, getTransactionStatsForUser };

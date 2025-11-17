@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { envVars } from "../config/env";
 
 export interface TokenInfo {
   accessToken: string;
@@ -6,11 +7,14 @@ export interface TokenInfo {
 }
 
 export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {
+  const isProduction = envVars.NODE_ENV === "production";
   if (tokenInfo.accessToken) {
     res.cookie("accessToken", tokenInfo.accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      // ...(isProduction && { domain: ".netlify.app" }),
+      // path: "/",
     });
   }
 
@@ -19,6 +23,8 @@ export const setAuthCookie = async (res: Response, tokenInfo: TokenInfo) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      // ...(isProduction && { domain: ".netlify.app" }),
+      // path: "/",
     });
   }
 };
