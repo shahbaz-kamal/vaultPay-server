@@ -97,9 +97,65 @@ const getStatsForAdmin = async () => {
     agentComimissionPayout,
   };
 
+  // // Transaction Overview
+
+  const totalTransactionPromise = Transaction.countDocuments();
+  const totalTransactionAmountPromise = Transaction.aggregate([
+    {
+      //stage 1: group
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const transactionByTypePromise = Transaction.aggregate([
+    // stage 1: grouping
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const transactionBySourcePromise = Transaction.aggregate([
+    // stage 1: grouping
+    {
+      $group: {
+        _id: "$source",
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const [totalTransaction, totalTransactionAmount, transactionByType, transactionBySource] = await Promise.all([
+    totalTransactionPromise,
+    totalTransactionAmountPromise,
+    transactionByTypePromise,
+    transactionBySourcePromise,
+  ]);
+
+  const transactionOverview = {
+    totalTransaction,
+    totalTransactionAmount: totalTransactionAmount[0].sum,
+    transactionByType: transactionByType.map((item) => ({
+      type: item._id,
+      count: item.count,
+      amount: item.amount,
+    })),
+    transactionBySource:transactionBySource.map((item) => ({
+      source: item._id,
+      count: item.count,
+      amount: item.amount,
+    })),
+  };
+
   return {
     userAndAgentOverview,
     systemBalanceAndRevenue,
+    transactionOverview,
   };
 };
 
