@@ -145,17 +145,117 @@ const getStatsForAdmin = async () => {
       count: item.count,
       amount: item.amount,
     })),
-    transactionBySource:transactionBySource.map((item) => ({
+    transactionBySource: transactionBySource.map((item) => ({
       source: item._id,
       count: item.count,
       amount: item.amount,
     })),
   };
 
+  // //top Performer
+
+  const topAgentsPromise = Transaction.aggregate([
+    {
+      $project: {
+        receiver: "$receiverId",
+        sender: "$senderId",
+        amount: 1,
+      },
+    },
+    {
+      $project: {
+        userId: { $ifNull: ["$sender", "$receiver"] },
+        amount: 1,
+      },
+    },
+    {
+      $group: {
+        _id: "$userId",
+        transactionAmount: { $sum: "$amount" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
+    {
+      $match: { "user.role": "AGENT" }, // <-- Role filtering for users
+    },
+    {
+      $sort: { transactionAmount: -1 },
+    },
+    { $limit: 5 },
+    {
+      $project: {
+        _id: 1,
+        name: "$user.name",
+        profilePicture: "$user.profilePicture",
+        transactionAmount: 1,
+      },
+    },
+  ]);
+  const topUsersPromise = Transaction.aggregate([
+    {
+      $project: {
+        receiver: "$receiverId",
+        sender: "$senderId",
+        amount: 1,
+      },
+    },
+    {
+      $project: {
+        userId: { $ifNull: ["$sender", "$receiver"] },
+        amount: 1,
+      },
+    },
+    {
+      $group: {
+        _id: "$userId",
+        transactionAmount: { $sum: "$amount" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
+    {
+      $match: { "user.role": Role.USER }, // <-- Role filtering for users
+    },
+    {
+      $sort: { transactionAmount: -1 },
+    },
+    { $limit: 5 },
+    {
+      $project: {
+        _id: 1,
+        name: "$user.name",
+        profilePicture: "$user.profilePicture",
+        transactionAmount: 1,
+      },
+    },
+  ]);
+
+  const [topAgents, topUsers] = await Promise.all([topAgentsPromise, topUsersPromise]);
+
+  const topPerformer = {
+    topAgents,
+    topUsers,
+  };
   return {
     userAndAgentOverview,
     systemBalanceAndRevenue,
     transactionOverview,
+    topPerformer,
   };
 };
 
