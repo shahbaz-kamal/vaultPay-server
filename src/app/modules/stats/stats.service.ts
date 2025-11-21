@@ -1,8 +1,11 @@
+import { TRANSACTION_TYPE } from "./../transaction/transaction.interface";
 import { System } from "../system/system.model";
+import { TRANSACTION_TYPE } from "../transaction/transaction.interface";
 import { Transaction } from "../transaction/transaction.model";
 import { IsActive, Role } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { Wallet } from "../wallet/wallet.model";
+import mongoose from "mongoose";
 
 const now = new Date();
 const sevenDaysAgo = new Date(now).setDate(now.getDate() - 7);
@@ -266,10 +269,52 @@ const getStatsForUser = async (userId: string) => {
   // Wallet Overview
 
   const walletPromise = Wallet.findOne({ user: userId });
+  const totalCashInFromAgentPromise = Transaction.aggregate([
+    //$match
+    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_IN } },
 
-  const [wallet] = await Promise.all([walletPromise]);
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const totalCashOutToAgentPromise = Transaction.aggregate([
+    //$match
+    { $match: { senderId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_OUT } },
 
-  const walletOverview = { currentBalance:wallet?.balance};
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const totalAddMOneyPromise = Transaction.aggregate([
+    //$match
+    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.ADD_MONEY } },
+
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const [wallet, totalCashInFromAgent, totalCashOutToAgent,totalAddMOney] = await Promise.all([
+    walletPromise,
+    totalCashInFromAgentPromise,
+    totalCashOutToAgentPromise,totalAddMOneyPromise
+  ]);
+
+  const walletOverview = {
+    currentBalance: wallet?.balance,
+    totalCashInFromAgent: totalCashInFromAgent[0].sum,
+    totalCashOut: totalCashOutToAgent[0].sum,
+    totalAddMOney:totalAddMOney[0].sum
+  };
 
   return { walletOverview };
 };
