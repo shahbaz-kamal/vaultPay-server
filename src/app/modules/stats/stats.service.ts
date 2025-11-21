@@ -10,6 +10,7 @@ const fifteenDaysAgo = new Date(now).setDate(now.getDate() - 15);
 const thirtyDaysAgo = new Date(now).setDate(now.getDate() - 30);
 const sixtyDaysAgo = new Date(now).setDate(now.getDate() - 60);
 
+// Admin
 const getStatsForAdmin = async () => {
   //// user And Agent Overview
   const totalUsersPromise = User.countDocuments({ role: Role.USER });
@@ -259,6 +260,20 @@ const getStatsForAdmin = async () => {
   };
 };
 
+// User
+
+const getStatsForUser = async (userId: string) => {
+  // Wallet Overview
+
+  const walletPromise = Wallet.findOne({ user: userId });
+
+  const [wallet] = await Promise.all([walletPromise]);
+
+  const walletOverview = { currentBalance:wallet?.balance};
+
+  return { walletOverview };
+};
+
 const getTransactionStatsForAdmin = async () => {
   // 1. Total transactions
   const totalTransactionsPromise = Transaction.countDocuments();
@@ -356,8 +371,5 @@ const getTransactionStatsForAdmin = async () => {
 //users
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getTransactionStatsForUser = async (userId: string) => {
-  return {};
-};
 
-export const StatsService = { getStatsForAdmin, getTransactionStatsForAdmin, getTransactionStatsForUser };
+export const StatsService = { getStatsForAdmin, getTransactionStatsForAdmin, getStatsForUser };
