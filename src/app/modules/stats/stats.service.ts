@@ -1,6 +1,6 @@
 import { TRANSACTION_TYPE } from "./../transaction/transaction.interface";
 import { System } from "../system/system.model";
-import { TRANSACTION_TYPE } from "../transaction/transaction.interface";
+
 import { Transaction } from "../transaction/transaction.model";
 import { IsActive, Role } from "../user/user.interface";
 import { User } from "../user/user.model";
@@ -303,118 +303,517 @@ const getStatsForUser = async (userId: string) => {
     },
   ]);
 
-  const [wallet, totalCashInFromAgent, totalCashOutToAgent,totalAddMOney] = await Promise.all([
+  const [wallet, totalCashInFromAgent, totalCashOutToAgent, totalAddMOney] = await Promise.all([
     walletPromise,
     totalCashInFromAgentPromise,
-    totalCashOutToAgentPromise,totalAddMOneyPromise
+    totalCashOutToAgentPromise,
+    totalAddMOneyPromise,
   ]);
 
   const walletOverview = {
     currentBalance: wallet?.balance,
     totalCashInFromAgent: totalCashInFromAgent[0].sum,
     totalCashOut: totalCashOutToAgent[0].sum,
-    totalAddMOney:totalAddMOney[0].sum
+    totalAddMOney: totalAddMOney[0].sum,
   };
 
-  return { walletOverview };
-};
+  ////Transaction Overview
+  const userTransactionsSumAndAmountPromise = Transaction.aggregate([
+    // stage 1 matching
 
-const getTransactionStatsForAdmin = async () => {
-  // 1. Total transactions
-  const totalTransactionsPromise = Transaction.countDocuments();
+    {
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
 
-  // 2. Transactions by type
-  const transactionsByTypePromise = Transaction.aggregate([
-    { $group: { _id: "$type", count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-  ]);
-
-  // 3. Transactions by status
-  const transactionsByStatusPromise = Transaction.aggregate([
-    { $group: { _id: "$status", count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-  ]);
-
-  // 4. Transactions by source
-  const transactionsBySourcePromise = Transaction.aggregate([
-    { $group: { _id: "$source", count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-  ]);
-
-  //   5. Average payment amount
-
-  const avgTransactionAmountPromise = Transaction.aggregate([
-    //stage 1: Group
+    // stage 2: Grouping
     {
       $group: {
         _id: null,
-        avgTransactionAmount: { $avg: "$amount" },
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
       },
     },
   ]);
+  const transactionByTypePromise = Transaction.aggregate([
+    // stage 1 matching
 
-  // 6. Transactions in last 7, 15, 30, 60 days
-  const recentTransactionsPromise = Transaction.aggregate([
     {
-      $facet: {
-        last7Days: [
-          { $match: { createdAt: { $gte: sevenDaysAgo } } },
-          { $group: { _id: null, count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
+
+    // stage 2: Grouping
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        type: "$_id",
+        count: 1,
+        amount: 1,
+      },
+    },
+  ]);
+  const [userTransactionsSumAndAmount, transactionByType] = await Promise.all([
+    userTransactionsSumAndAmountPromise,
+    transactionByTypePromise,
+  ]);
+
+  const totalTransaction = userTransactionsSumAndAmount[0].count;
+  const transactionsAmount = userTransactionsSumAndAmount[0].amount;
+  const transactionOverview = { totalTransaction, transactionsAmount, transactionByType };
+
+  ////monthly Activity
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+  const months = [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const monthlyTransactionAmountPromise = Transaction.aggregate([
+    // stage 1:match
+    {
+      $match: {
+        $and: [
+          {
+            $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+          },
+          { createdAt: { $gte: oneYearAgo, $lte: today } },
         ],
-        last15Days: [
-          { $match: { createdAt: { $gte: fifteenDaysAgo } } },
-          { $group: { _id: null, count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-        ],
-        last30Days: [
-          { $match: { createdAt: { $gte: thirtyDaysAgo } } },
-          { $group: { _id: null, count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-        ],
-        last60Days: [
-          { $match: { createdAt: { $gte: sixtyDaysAgo } } },
-          { $group: { _id: null, count: { $sum: 1 }, totalAmount: { $sum: "$amount" } } },
-        ],
+      },
+    },
+    //stage 2: group by month and year
+    {
+      $group: {
+        _id: {
+          month: { $month: "$createdAt" },
+          year: { $year: "$createdAt" },
+        },
+        amount: { $sum: "$amount" },
+      },
+    },
+    // stage 3: sort by month ascending
+    {
+      $sort: {
+        "_id.year": 1,
+        "_id.month": 1,
+      },
+    },
+    // stage 4: Sort by year-month ascending
+    {
+      $sort: {
+        "_id.year": 1,
+        "_id.month": 1,
+      },
+    },
+    // stage 5: Format output
+    {
+      $project: {
+        _id: 0,
+        month: {
+          $let: {
+            vars: {
+              months,
+            },
+            in: { $arrayElemAt: ["$$months", "$_id.month"] },
+          },
+        },
+        year: "$_id.year",
+        amount: 1,
       },
     },
   ]);
 
-  const [totalTransactions, transactionsByType, transactionsByStatus, transactionsBySource, avgTransactionAmount, recentTransactions] =
-    await Promise.all([
-      totalTransactionsPromise,
-      transactionsByTypePromise,
-      transactionsByStatusPromise,
-      transactionsBySourcePromise,
-      avgTransactionAmountPromise,
-      recentTransactionsPromise,
-    ]);
+  const [monthlyTransactionAmount] = await Promise.all([monthlyTransactionAmountPromise]);
 
-  return {
-    totalTransactions, // number
-    transactionsByType: transactionsByType.map((t) => ({
-      type: t._id as string,
-      count: t.count as number,
-      totalAmount: t.totalAmount as number,
-    })), // { type: string; count: number; totalAmount: number }[]
-    transactionsByStatus: transactionsByStatus.map((t) => ({
-      status: t._id as string,
-      count: t.count as number,
-      totalAmount: t.totalAmount as number,
-    })), // { status: string; count: number; totalAmount: number }[]
-    transactionsBySource: transactionsBySource.map((t) => ({
-      source: t._id as string,
-      count: t.count as number,
-      totalAmount: t.totalAmount as number,
-    })), // { source: string; count: number; totalAmount: number }[]
-    avgTransactionAmount,
-    recentTransactions: {
-      last7Days: recentTransactions[0].last7Days[0] || { count: 0, totalAmount: 0 },
-      last15Days: recentTransactions[0].last15Days[0] || { count: 0, totalAmount: 0 },
-      last30Days: recentTransactions[0].last30Days[0] || { count: 0, totalAmount: 0 },
-      last60Days: recentTransactions[0].last60Days[0] || { count: 0, totalAmount: 0 },
-    }, // { last7Days: {count:number,totalAmount:number}, ... }
-  };
+  // data except months are nothing but TRANSACTION_TYPE
+  const monthlyTransactionAmountByTypeInitialPromise = Transaction.aggregate([
+    {
+      $match: {
+        $and: [
+          {
+            $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+          },
+          { createdAt: { $gte: oneYearAgo, $lte: today } },
+        ],
+      },
+    },
+
+    // group by YEAR, MONTH, TYPE
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+          type: "$type",
+        },
+        amount: { $sum: "$amount" },
+      },
+    },
+
+    // reshape into { year, month, type, amount }
+    {
+      $project: {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        type: "$_id.type",
+        amount: 1,
+      },
+    },
+
+    // sort chronologically
+    {
+      $sort: { year: 1, month: 1 },
+    },
+  ]);
+
+  const [monthlyTransactionAmountByTypeInitial] = await Promise.all([monthlyTransactionAmountByTypeInitialPromise]);
+  // Shaping the output
+  const resultMap: any = {};
+  monthlyTransactionAmountByTypeInitial.forEach((item) => {
+    const key = `${item.year}-${item.month}`;
+
+    if (!resultMap[key]) {
+      resultMap[key] = {
+        month: months[item.month],
+        year: item.year,
+        [TRANSACTION_TYPE.ADD_MONEY]: 0,
+        [TRANSACTION_TYPE.CASH_OUT]: 0,
+        [TRANSACTION_TYPE.CASH_IN]: 0,
+        [TRANSACTION_TYPE.SEND_MONEY]: 0,
+      };
+    }
+
+    resultMap[key][item.type] = item.amount;
+  });
+  const monthlyTransactionAmountByType = Object.values(resultMap);
+  const monthlyActivity = { monthlyTransactionAmount, monthlyTransactionAmountByType };
+
+  ////Recent 5 Transactions
+
+  const recentFiveTRansactionsPromise = Transaction.aggregate([
+    //stage 1: Match
+    {
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
+    // stage 2
+    {
+      $sort: { createdAt: -1 },
+    },
+
+    //stage 3:limit
+    {$limit:5}
+  ]);
+
+  const [recentFiveTRansactions] = await Promise.all([recentFiveTRansactionsPromise]);
+ 
+
+  return { walletOverview, transactionOverview, monthlyActivity,recentFiveTRansactions };
 };
 
 //agents
+
+
+const getStatsForAgent = async (userId: string) => {
+  // Wallet Overview
+
+  const walletPromise = Wallet.findOne({ user: userId });
+  const totalCashInFromAgentPromise = Transaction.aggregate([
+    //$match
+    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_IN } },
+
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const totalCashOutToAgentPromise = Transaction.aggregate([
+    //$match
+    { $match: { senderId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_OUT } },
+
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const totalAddMOneyPromise = Transaction.aggregate([
+    //$match
+    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.ADD_MONEY } },
+
+    {
+      $group: {
+        _id: null,
+        sum: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const [wallet, totalCashInFromAgent, totalCashOutToAgent, totalAddMOney] = await Promise.all([
+    walletPromise,
+    totalCashInFromAgentPromise,
+    totalCashOutToAgentPromise,
+    totalAddMOneyPromise,
+  ]);
+
+  const walletOverview = {
+    currentBalance: wallet?.balance,
+    totalCashInFromAgent: totalCashInFromAgent[0].sum,
+    totalCashOut: totalCashOutToAgent[0].sum,
+    totalAddMOney: totalAddMOney[0].sum,
+  };
+
+  ////Transaction Overview
+  const userTransactionsSumAndAmountPromise = Transaction.aggregate([
+    // stage 1 matching
+
+    {
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
+
+    // stage 2: Grouping
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+  ]);
+  const transactionByTypePromise = Transaction.aggregate([
+    // stage 1 matching
+
+    {
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
+
+    // stage 2: Grouping
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        type: "$_id",
+        count: 1,
+        amount: 1,
+      },
+    },
+  ]);
+  const [userTransactionsSumAndAmount, transactionByType] = await Promise.all([
+    userTransactionsSumAndAmountPromise,
+    transactionByTypePromise,
+  ]);
+
+  const totalTransaction = userTransactionsSumAndAmount[0].count;
+  const transactionsAmount = userTransactionsSumAndAmount[0].amount;
+  const transactionOverview = { totalTransaction, transactionsAmount, transactionByType };
+
+  ////monthly Activity
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+  const months = [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const monthlyTransactionAmountPromise = Transaction.aggregate([
+    // stage 1:match
+    {
+      $match: {
+        $and: [
+          {
+            $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+          },
+          { createdAt: { $gte: oneYearAgo, $lte: today } },
+        ],
+      },
+    },
+    //stage 2: group by month and year
+    {
+      $group: {
+        _id: {
+          month: { $month: "$createdAt" },
+          year: { $year: "$createdAt" },
+        },
+        amount: { $sum: "$amount" },
+      },
+    },
+    // stage 3: sort by month ascending
+    {
+      $sort: {
+        "_id.year": 1,
+        "_id.month": 1,
+      },
+    },
+    // stage 4: Sort by year-month ascending
+    {
+      $sort: {
+        "_id.year": 1,
+        "_id.month": 1,
+      },
+    },
+    // stage 5: Format output
+    {
+      $project: {
+        _id: 0,
+        month: {
+          $let: {
+            vars: {
+              months,
+            },
+            in: { $arrayElemAt: ["$$months", "$_id.month"] },
+          },
+        },
+        year: "$_id.year",
+        amount: 1,
+      },
+    },
+  ]);
+
+  const [monthlyTransactionAmount] = await Promise.all([monthlyTransactionAmountPromise]);
+
+  // data except months are nothing but TRANSACTION_TYPE
+  const monthlyTransactionAmountByTypeInitialPromise = Transaction.aggregate([
+    {
+      $match: {
+        $and: [
+          {
+            $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+          },
+          { createdAt: { $gte: oneYearAgo, $lte: today } },
+        ],
+      },
+    },
+
+    // group by YEAR, MONTH, TYPE
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+          type: "$type",
+        },
+        amount: { $sum: "$amount" },
+      },
+    },
+
+    // reshape into { year, month, type, amount }
+    {
+      $project: {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        type: "$_id.type",
+        amount: 1,
+      },
+    },
+
+    // sort chronologically
+    {
+      $sort: { year: 1, month: 1 },
+    },
+  ]);
+
+  const [monthlyTransactionAmountByTypeInitial] = await Promise.all([monthlyTransactionAmountByTypeInitialPromise]);
+  // Shaping the output
+  const resultMap: any = {};
+  monthlyTransactionAmountByTypeInitial.forEach((item) => {
+    const key = `${item.year}-${item.month}`;
+
+    if (!resultMap[key]) {
+      resultMap[key] = {
+        month: months[item.month],
+        year: item.year,
+        [TRANSACTION_TYPE.ADD_MONEY]: 0,
+        [TRANSACTION_TYPE.CASH_OUT]: 0,
+        [TRANSACTION_TYPE.CASH_IN]: 0,
+        [TRANSACTION_TYPE.SEND_MONEY]: 0,
+      };
+    }
+
+    resultMap[key][item.type] = item.amount;
+  });
+  const monthlyTransactionAmountByType = Object.values(resultMap);
+  const monthlyActivity = { monthlyTransactionAmount, monthlyTransactionAmountByType };
+
+  ////Recent 5 Transactions
+
+  const recentFiveTRansactionsPromise = Transaction.aggregate([
+    //stage 1: Match
+    {
+      $match: {
+        $or: [{ receiverId: new mongoose.Types.ObjectId(userId) }, { senderId: new mongoose.Types.ObjectId(userId) }],
+      },
+    },
+    // stage 2
+    {
+      $sort: { createdAt: -1 },
+    },
+
+    //stage 3:limit
+    {$limit:5}
+  ]);
+
+  const [recentFiveTRansactions] = await Promise.all([recentFiveTRansactionsPromise]);
+ 
+
+  return { walletOverview, transactionOverview, monthlyActivity,recentFiveTRansactions };
+};
+
+
 
 //users
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-export const StatsService = { getStatsForAdmin, getTransactionStatsForAdmin, getStatsForUser };
+export const StatsService = { getStatsForAdmin, getStatsForAgent, getStatsForUser };

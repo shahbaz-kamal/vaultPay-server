@@ -9,9 +9,11 @@ const router = express.Router();
 
 //For Admin
 router.get("/admin", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getStatsForAdmin);
-router.get("/transaction", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getTransactionStatsForAdmin);
+
 
 // FOr User
 router.get("/user", checkAuth(Role.USER), StatsController.getStatsForUser);
+// FOr Agent
+router.get("/agent", checkAuth(Role.AGENT), StatsController.getStatsForAgent);
 
 export const StatsRoutes=router

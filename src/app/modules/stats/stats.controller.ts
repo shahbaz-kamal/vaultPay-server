@@ -29,7 +29,23 @@ const getStatsForUser = catchAsync(async (req: Request, res: Response, next: Nex
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Retrived Required Data For Admin",
+    message: "Retrived Required Data For User",
+    data: userStats,
+  });
+});
+const getStatsForAgent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+
+  const decodedToken=req.user as JwtPayload
+
+  if(!decodedToken) 
+    throw new AppError(httpStatus.UNAUTHORIZED,"No token received")
+  const userStats = await StatsService.getStatsForAgent(decodedToken.userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Retrived Required Data For User",
     data: userStats,
   });
 });
@@ -38,16 +54,7 @@ const getStatsForUser = catchAsync(async (req: Request, res: Response, next: Nex
 
 
 
-const getTransactionStatsForAdmin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const transactionStats = await StatsService.getTransactionStatsForAdmin();
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Retrived Transaction Data Successfully",
-    data: transactionStats,
-  });
-});
 
 // agesnts
 
@@ -55,4 +62,4 @@ const getTransactionStatsForAdmin = catchAsync(async (req: Request, res: Respons
 // users
 
 
-export const StatsController = { getStatsForAdmin,getTransactionStatsForAdmin,getStatsForUser };
+export const StatsController = { getStatsForAdmin,getStatsForAgent,getStatsForUser };
