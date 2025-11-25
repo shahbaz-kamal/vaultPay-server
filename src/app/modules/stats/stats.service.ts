@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 
 const now = new Date();
 const sevenDaysAgo = new Date(now).setDate(now.getDate() - 7);
-const fifteenDaysAgo = new Date(now).setDate(now.getDate() - 15);
 const thirtyDaysAgo = new Date(now).setDate(now.getDate() - 30);
 const sixtyDaysAgo = new Date(now).setDate(now.getDate() - 60);
 
@@ -543,9 +542,9 @@ const getStatsForAgent = async (userId: string) => {
   // Wallet Overview
 
   const walletPromise = Wallet.findOne({ user: userId });
-  const totalCashInFromAgentPromise = Transaction.aggregate([
+  const totalCashInToUserPromise = Transaction.aggregate([
     //$match
-    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_IN } },
+    { $match: { senderId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_IN } },
 
     {
       $group: {
@@ -556,7 +555,7 @@ const getStatsForAgent = async (userId: string) => {
   ]);
   const totalCashOutToAgentPromise = Transaction.aggregate([
     //$match
-    { $match: { senderId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_OUT } },
+    { $match: { receiverId: new mongoose.Types.ObjectId(userId), type: TRANSACTION_TYPE.CASH_OUT } },
 
     {
       $group: {
@@ -577,18 +576,18 @@ const getStatsForAgent = async (userId: string) => {
     },
   ]);
 
-  const [wallet, totalCashInFromAgent, totalCashOutToAgent, totalAddMOney] = await Promise.all([
+  const [wallet, totalCashInToUser, totalCashOutToAgent, totalAddMOney] = await Promise.all([
     walletPromise,
-    totalCashInFromAgentPromise,
+    totalCashInToUserPromise,
     totalCashOutToAgentPromise,
     totalAddMOneyPromise,
   ]);
 
   const walletOverview = {
-    currentBalance: wallet?.balance,
-    totalCashInFromAgent: totalCashInFromAgent[0].sum,
-    totalCashOut: totalCashOutToAgent[0].sum,
-    totalAddMOney: totalAddMOney[0].sum,
+    currentBalance: wallet?.balance ?? 0,
+    totalCashInToUser: totalCashInToUser[0]?.sum ?? 0,
+    totalCashOut: totalCashOutToAgent[0]?.sum ?? 0,
+    totalAddMOney: totalAddMOney[0]?.sum ?? 0,
   };
 
   ////Transaction Overview
