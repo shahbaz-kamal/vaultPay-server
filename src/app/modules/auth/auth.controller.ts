@@ -131,7 +131,7 @@ const payload=req.body
 const forgotPassword = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.body;
+  const { email } = req.body;
     await AuthServices.forgotPassword(email);
     sendResponse(res, {
       success: true,
