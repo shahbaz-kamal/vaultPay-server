@@ -34,6 +34,8 @@ export const setPassword = async (userId: string, password: string) => {
   user.auths = auths;
   await user.save();
 };
+
+
 export const changePassword = async (oldPassword: string, newPassword: string, decodedToken: JwtPayload) => {
   const user = await User.findById(decodedToken.userId);
   if (!user) {

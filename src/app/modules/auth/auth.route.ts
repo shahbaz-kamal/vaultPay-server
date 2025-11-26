@@ -15,7 +15,7 @@ router.post("/logout", AuthControllers.logout);
 router.post("/set-password", checkAuth(...Object.values(Role)), AuthControllers.setPassword);
 
 //if user wants to change his password then this will be used
-router.post("/change-password", checkAuth(...Object.values(Role)), AuthControllers.resetPassword);
+router.post("/change-password", checkAuth(...Object.values(Role)), AuthControllers.changePassword);
 
 // If user forgets his/her password then this route will be used to add new password through otp verification.
 // Flow: User will provide email -> system will check user status(isVerified or not) and if all is ok then --> a short token (valid for 10 minutes) will be given to users--> system will send  email containing a frontend link(localhost:5173/reset-password?email=xyz?token=token)->frontend developer will extract email and token from query--> user will provide new password--> then  reset password in backened will be hit --> token for authorization-->nw password-->hash password
