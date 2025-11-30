@@ -16,5 +16,15 @@ const storeNewsLetterSubscription = catchAsync(async (req: Request, res: Respons
     data: null,
   });
 });
+const getNewsLetter = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const newsLetter = await NewsLetterService.getNewsLetter();
 
-export const NewsLetterController = { storeNewsLetterSubscription };
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "You have successfully Retrived  newsletter data",
+    data: newsLetter,
+  });
+});
+
+export const NewsLetterController = { storeNewsLetterSubscription, getNewsLetter };

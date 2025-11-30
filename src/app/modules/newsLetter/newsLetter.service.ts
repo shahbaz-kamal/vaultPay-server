@@ -8,4 +8,8 @@ const storeNewsLetterSubscription = async (payload: INewsLetter) => {
   const res = await NewsLetter.create(payload);
   return res;
 };
-export const NewsLetterService = { storeNewsLetterSubscription };
+const getNewsLetter = async () => {
+ const newsLetter=await NewsLetter.find()
+  return newsLetter;
+};
+export const NewsLetterService = { storeNewsLetterSubscription,getNewsLetter };

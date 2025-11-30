@@ -7,6 +7,7 @@ import { OtpRoutes } from "../modules/otp/otp.route";
 import { StatsRoutes } from "../modules/stats/stats.route";
 
 import { NewsLetterRoute } from "../modules/newsLetter/newsLetter.route";
+import { ClientMessageRoute } from "../modules/clientMessage/clientMessage.route";
 
 export const router = Router();
 
@@ -21,6 +22,7 @@ const moduleRoutes = [
   { path: "/otp", route: OtpRoutes },
   { path: "/stats", route: StatsRoutes },
   { path: "/news-letter", route: NewsLetterRoute },
+  { path: "/client-message", route: ClientMessageRoute },
 ];
 
 moduleRoutes.forEach((route) => {
