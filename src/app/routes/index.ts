@@ -6,6 +6,8 @@ import { WalletRoute } from "../modules/wallet/wallet.route";
 import { OtpRoutes } from "../modules/otp/otp.route";
 import { StatsRoutes } from "../modules/stats/stats.route";
 
+import { NewsLetterRoute } from "../modules/newsLetter/newsLetter.route";
+
 export const router = Router();
 
 const moduleRoutes = [
@@ -18,6 +20,7 @@ const moduleRoutes = [
   { path: "/wallet", route: WalletRoute },
   { path: "/otp", route: OtpRoutes },
   { path: "/stats", route: StatsRoutes },
+  { path: "/news-letter", route: NewsLetterRoute },
 ];
 
 moduleRoutes.forEach((route) => {
