@@ -121,7 +121,7 @@ const resetPassword = (0, catchAsync_1.catchAsync)(
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,
-        message: "Password changed successfully ",
+        message: " Reset password successfull",
         data: null,
     });
 }));

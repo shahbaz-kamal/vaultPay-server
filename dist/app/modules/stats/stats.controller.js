@@ -17,35 +17,40 @@ const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
 const stats_service_1 = require("./stats.service");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
-const getUserStatsForAdmin = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const userStats = yield stats_service_1.StatsService.getUserStatsForAdmin();
+const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
+const getStatsForAdmin = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const userStats = yield stats_service_1.StatsService.getStatsForAdmin();
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.OK,
         success: true,
-        message: "Retrived User Data Successfully",
+        message: "Retrived Required Data For Admin",
         data: userStats,
     });
 }));
-const getTransactionStatsForAdmin = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const transactionStats = yield stats_service_1.StatsService.getTransactionStatsForAdmin();
+const getStatsForUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    if (!decodedToken)
+        throw new AppError_1.default(http_status_codes_1.default.UNAUTHORIZED, "No token received");
+    const userStats = yield stats_service_1.StatsService.getStatsForUser(decodedToken.userId);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.OK,
         success: true,
-        message: "Retrived Transaction Data Successfully",
-        data: transactionStats,
+        message: "Retrived Required Data For User",
+        data: userStats,
+    });
+}));
+const getStatsForAgent = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    if (!decodedToken)
+        throw new AppError_1.default(http_status_codes_1.default.UNAUTHORIZED, "No token received");
+    const userStats = yield stats_service_1.StatsService.getStatsForAgent(decodedToken.userId);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.default.OK,
+        success: true,
+        message: "Retrived Required Data For User",
+        data: userStats,
     });
 }));
 // agesnts
 // users
-const getTransactionStatsForUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const decodedToken = req.user;
-    const userId = decodedToken.userId;
-    const transactionStats = yield stats_service_1.StatsService.getTransactionStatsForUser(userId);
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.default.OK,
-        success: true,
-        message: "Retrived Transaction Data For USer Successfully",
-        data: transactionStats,
-    });
-}));
-exports.StatsController = { getUserStatsForAdmin, getTransactionStatsForAdmin, getTransactionStatsForUser };
+exports.StatsController = { getStatsForAdmin, getStatsForAgent, getStatsForUser };

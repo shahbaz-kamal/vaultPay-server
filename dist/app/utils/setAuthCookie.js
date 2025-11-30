@@ -10,9 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAuthCookie = void 0;
-const env_1 = require("../config/env");
 const setAuthCookie = (res, tokenInfo) => __awaiter(void 0, void 0, void 0, function* () {
-    const isProduction = env_1.envVars.NODE_ENV === "production";
     if (tokenInfo.accessToken) {
         res.cookie("accessToken", tokenInfo.accessToken, {
             httpOnly: true,

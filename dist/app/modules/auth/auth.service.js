@@ -87,7 +87,7 @@ const forgotPassword = (email) => __awaiter(void 0, void 0, void 0, function* ()
         role: isUserExist.role,
     };
     const resetToken = jsonwebtoken_1.default.sign(jwtPayload, env_1.envVars.JWT_ACCESS_TOKEN_SECRET, {
-        expiresIn: "10m",
+        expiresIn: "5m",
     });
     const resetUILink = `${env_1.envVars.FRONTEND_URL}/reset-password?id=${isUserExist._id}&token=${resetToken}`;
     (0, sendEmail_1.sendEmail)({

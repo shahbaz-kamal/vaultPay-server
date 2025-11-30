@@ -15,44 +15,63 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 ###
 
 [Click Here](https://vault-pay-server.vercel.app)
+## 🔗 Frontend Link deployment link
 
-## 👨‍💼Login Info
+###
 
-- **Super Admin Email** — super@gmail.com
+[Click Here](https://vaultpay-by-shahbaz.netlify.app)
+
+## 👨‍💼 Login Info(For testing)
+
+- **Super Admin Email** — super.vaultpay@gmail.com
 - **Super Admin Password** — 123456Aa
-- **Admin Email** — admin@gmail.com
-- **Admin Password** — 123456Aa
-- **User Email** — admin@gmail.com
+- **Agent Email** — shahbazkamal384@gmail.com
+- **Agent Password** — 123456Aa
+- **User Email** — tamimchowdhury120096@gmail.com
 - **User Password** — 123456Aa
-
 
 ## ✨ Features:
 
 - **Role-Based Access Control** — Separate functionalities for **Admin**, **Super Admin**, **Agent**, and **User** roles.
 - **Secure Authentication** — Implemented using **JWT** and **BcryptJS** for safe login and password protection.
+  - **Forget Password:** All Users can easily set new password if password is forgotten through reset option sent via email.
+  - **Set Password:** Users can set password, if initially registered with google. After setting passord he/she can use credential based login.
+  - **Change Password:** Users can change password easily by providing old password.
+  - **OTP Verification:** Users is verified via email by sending OTP upon register with email and password
 - **Add Balance via SSLCommerz** — Users can easily add money to their wallets using the **SSLCommerz payment gateway**. Also users can send money to other users.
 - **Cash out, send money and cash in** — Real-time transaction system for seamless fund management.
+- **Invoice via Email** — All users gets there there invoice as pdf instantly via email. Also can download transaction invoice any time from there dashboard.
 - **Admin Dashboard** — Admins can monitor total balance, manage commissions, and set transaction charges.
-- **Agent Management** — Agents can process cash in and assist users with transactions.
+  - **Analytics** — Admins can get a huge nomber of statistical information in this page. like user & agent overview (totaluser/agents), active vs inactive users , system information, transaction overview by type and top performers for both users and agents.
+  - **Transaction History** — Admins can get a total transaction history . Also can filter and search transaction history by user name, email , transaction date etc.
+  - **Agent and user Management** — Admins can get agent and users information and also can update the status of user and some basic information of users
+  - **Client Messages** — Admins can client messages that came through contact us page from frontend.
+  - **NewsLetter Information** — Admins can get emails, whose users subscribed for newsletter via newsletter section.
+- **Agents Dashboard** — Agents can perform cash in and add money as well as some more operation like can get statistical data, profile info etc.
+  - **Wallet Summary** — Huge statistical data for logged in agent can be accessed.
+  - **Transaction History** — Logged in agent can get his/her transaction history . Can use filter and search by different parameters.
+- **Users Dashboard** — Users can perform cash out,send money and add money as well as some more operation like can get statistical data, profile info etc.
+
+  - **Wallet Insights** — Huge statistical data for logged in user can be accessed.
+  - **Transaction History** — Logged in user can get his/her transaction history . Can use filter and search by different parameters.
+
 - **Data Validation** — Robust input validation using **Zod** to ensure clean and error-free data.
 - **Error Handling** — Centralized error management with descriptive responses for smooth debugging.
 - **TypeScript Support** — Strongly typed backend ensuring better maintainability and scalability.
 - **Database Management** — Built with **MongoDB (Mongoose)** for flexible and efficient data modeling.
 - **Users can**
-  - Add Money to their wallet from SSLCommerze   
-  - Send money to other users with a transaction charge. 
-  - Initiates cash out to agents to withdraw.  
+  - Add Money to their wallet from SSLCommerze
+  - Send money to other users with a transaction charge.
+  - Initiates cash out to agents to withdraw.
 - **Agents can**
-  - Add Money to their wallet from SSLCommerze.  
-  - Initiates cash in to user wallet. (user will receive money from agent)  
-- **Admins can** 
+  - Add Money to their wallet from SSLCommerze.
+  - Initiates cash in to user wallet. (user will receive money from agent)
+- **Admins can**
   - View all transactions.
-  - Update all users profiles certain fields. 
+  - Update all users profiles certain fields.
 - **Super Admin can**
   - View all transactions.
-  - Update users profiles as well as admin's profile . 
-
-
+  - Update users profiles as well as admin's profile .
 
 ## 🛠 Technology Used
 
@@ -80,17 +99,26 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 {
   "axios": "^1.12.2",
   "bcryptjs": "^3.0.2",
+  "cloudinary": "^1.41.3",
   "cookie-parser": "^1.4.7",
   "cors": "^2.8.5",
+  "crypto": "^1.0.1",
   "dotenv": "^17.2.1",
+  "ejs": "^3.1.10",
   "express": "^5.1.0",
   "express-session": "^1.18.2",
   "http-status-codes": "^2.3.0",
   "jsonwebtoken": "^9.0.2",
   "mongoose": "^8.18.0",
+  "multer": "^2.0.2",
+  "multer-storage-cloudinary": "^4.0.0",
+  "node-fetch": "^3.3.2",
+  "nodemailer": "^7.0.10",
   "passport": "^0.7.0",
   "passport-google-oauth20": "^2.0.0",
   "passport-local": "^1.0.0",
+  "pdfkit": "^0.17.2",
+  "redis": "^5.9.0",
   "zod": "^4.1.5"
 }
 ```
@@ -103,12 +131,16 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
   "@types/cookie-parser": "^1.4.9",
   "@types/cors": "^2.8.19",
   "@types/dotenv": "^6.1.1",
+  "@types/ejs": "^3.1.5",
   "@types/express": "^5.0.3",
   "@types/express-session": "^1.18.2",
   "@types/jsonwebtoken": "^9.0.10",
+  "@types/multer": "^2.0.0",
+  "@types/nodemailer": "^7.0.3",
   "@types/passport": "^1.0.17",
   "@types/passport-google-oauth20": "^2.0.16",
   "@types/passport-local": "^1.0.38",
+  "@types/pdfkit": "^0.17.3",
   "eslint": "^9.34.0",
   "ts-node-dev": "^2.0.0",
   "typescript": "^5.9.2",
@@ -116,92 +148,11 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 }
 ```
 
-## 📁 Project Structure
-
-```
-vaultPay-server/
-├── .env.example
-├── .gitignore
-├── eslint.config.mjs
-├── package-lock.json
-├── package.json
-├── src/
-│   ├── app/
-│   │   ├── config/
-│   │   │   ├── env.ts
-│   │   │   └── passport.ts
-│   │   ├── constants.ts
-│   │   ├── errorHelpers/
-│   │   │   └── AppError.ts
-│   │   ├── helpers/
-│   │   │   ├── handleCastError.ts
-│   │   │   ├── handleDuplicateError.ts
-│   │   │   ├── handleValidationError.ts
-│   │   │   └── handleZodError.ts
-│   │   ├── interfaces/
-│   │   │   ├── error.types.ts
-│   │   │   └── index.d.ts
-│   │   ├── middlewares/
-│   │   │   ├── checkAuth.ts
-│   │   │   ├── globalErrorHandler.ts
-│   │   │   ├── logger.ts
-│   │   │   ├── notFoundError.ts
-│   │   │   └── validateRequest.ts
-│   │   ├── modules/
-│   │   │   ├── auth/
-│   │   │   │   ├── auth.controller.ts
-│   │   │   │   ├── auth.route.ts
-│   │   │   │   └── auth.service.ts
-│   │   │   ├── sslCommerz/
-│   │   │   │   ├── sslCommerze.interface.ts
-│   │   │   │   └── sslCommerze.service.ts
-│   │   │   ├── system/
-│   │   │   │   ├── system.interface.ts
-│   │   │   │   └── system.model.ts
-│   │   │   ├── transaction/
-│   │   │   │   ├── transaction.controller.ts
-│   │   │   │   ├── transaction.interface.ts
-│   │   │   │   ├── transaction.model.ts
-│   │   │   │   ├── transaction.route.ts
-│   │   │   │   ├── transaction.service.ts
-│   │   │   │   └── transaction.validation.ts
-│   │   │   ├── user/
-│   │   │   │   ├── user.controller.ts
-│   │   │   │   ├── user.interface.ts
-│   │   │   │   ├── user.model.ts
-│   │   │   │   ├── user.route.ts
-│   │   │   │   ├── user.service.ts
-│   │   │   │   └── user.validation.ts
-│   │   │   └── wallet/
-│   │   │       ├── wallet.controller.ts
-│   │   │       ├── wallet.interface.ts
-│   │   │       ├── wallet.model.ts
-│   │   │       ├── wallet.route.ts
-│   │   │       ├── wallet.service.ts
-│   │   │       └── wallet.validation.ts
-│   │   ├── routes/
-│   │   │   └── index.ts
-│   │   └── utils/
-│   │       ├── calculateTransactionFee.ts
-│   │       ├── catchAsync.ts
-│   │       ├── generateTransactionId.ts
-│   │       ├── jwt.ts
-│   │       ├── QueryBuilder.ts
-│   │       ├── seedSuperAdmin.ts
-│   │       ├── seedSystemInformation.ts
-│   │       ├── sendResponse.ts
-│   │       ├── setAuthCookie.ts
-│   │       └── userToken.ts
-│   ├── app.ts
-│   └── server.ts
-└── tsconfig.json
-```
-
 ## ✨ Routes with sample request
 
-Need to copy the accessToken from the response of login and paste it in Authorization header in postman for all private route. 
+Need to copy the accessToken from the response of login and paste it in Authorization header in postman for all private route.
 
-### **User Routes:**
+<h2 style="color: orange;" >User Routes: </h2>
 
 ### 1. Register User (public route)
 
@@ -303,7 +254,7 @@ Supports filtering, sorting, pagination, searching and field filtering.
 }
 ```
 
-### **Auth Routes:**
+<h2 style="color: orange;" >Auth Routes: </h2>
 
 ### 1. Login
 
@@ -357,9 +308,71 @@ Supports filtering, sorting, pagination, searching and field filtering.
 }
 ```
 
-### 2. Reset Password (Private route)
+### 2 . Google Login (Public route)
+
+**POST** `/api/v1/auth/google`
+
+Initiates Google login
+
+### 3. Forgot Password (Private route)
+
+- Will be called when users forgot there password.
+- Users will get a reset password link via email
+
+**POST** `/api/v1/auth/forgot-password`
+
+#### Request:
+
+```json
+{
+  "email": "tamimchowdhury10@gmail.com"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "Email sent successfully ",
+  "data": null
+}
+```
+
+### 4. Reset Password (Private route) -
+
+- When users hit forget password then users will get an email with reset password link.
+- After clicking the reset password link, Then this api is called
 
 **POST** `/api/v1/auth/reset-password`
+
+#### Request:
+
+```json
+{
+  "id": "68ff9f41c520935646a4aa17", //mongodb _id
+  "newPassword": "123456aA"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "Reset password successfull",
+  "data": null
+}
+```
+
+### 5. Change Password (Private route) - Will be active when users forgot there password
+
+- When logged in users wants to change the password , he/ she can click change password button in profile and a modal will open asking the old password and new password.
+- If old password dosent match, user can not change password.
+
+**POST** `/api/v1/auth/change-password`
 
 #### Request:
 
@@ -381,13 +394,7 @@ Supports filtering, sorting, pagination, searching and field filtering.
 }
 ```
 
-### 3. Google Login (Public route)
-
-**POST** `/api/v1/auth/google`
-
-Initiates Google login
-
-### 4. Get New Access Token with refresh-token (Private route)
+### 6. Get New Access Token with refresh-token (Private route)
 
 **POST** `/api/v1/auth/refresh-token`
 
@@ -404,7 +411,7 @@ Initiates Google login
 }
 ```
 
-### 4. Log out
+### 7. Log out
 
 **POST** `/api/v1/auth/logout`
 
@@ -419,7 +426,7 @@ Initiates Google login
 }
 ```
 
-### **Transaction Routes:**
+<h2 style="color: orange;" >Transaction Routes: </h2>
 
 ### 1. Add Money ( Private Route)
 
@@ -632,8 +639,40 @@ Supports filtering by date.
 - `from` : From which date logged in user wants transactions
 - `to` : upto which date logged in user wants transactions
 
-### **Wallet Routes:**
+### 7. Get Single Transaction (Accessible to Admin/ Super Admin- Private route)
 
+- This is for admin, if he/ she want to see a particular transaction information.
+
+**GET** `/api/v1/transaction/getSingleTransaction?transactionId=trans_1762514687106_0267c91274ce`
+
+#### Response:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Your Transaction data has been received",
+  "data": {
+    "agentCommission": null,
+    "_id": "690a319d49cf088982b42931",
+    "transactionId": "trans_1762275741079_34407a6a9c1a",
+    "type": "ADD_MONEY",
+    "source": "SSLCOMMERZ",
+    "senderEmail": null,
+    "senderId": null,
+    "receiverEmail": "shahbazkamal384@gmail.com",
+    "receiverId": "690a2ec549cf088982b428e3",
+    "amount": 40000,
+    "status": "COMPLETED",
+    "notes": "Shahbaz added money from bank account",
+    "invoiceUrl": "https://res.cloudinary.com/dxbkmcxax/image/upload/v1762275757/pdf/pdfinvoice-INV-20251104-8E373A-1762275755570.pdf",
+    "createdAt": "2025-11-04T17:02:21.080Z",
+    "updatedAt": "2025-11-04T17:02:38.449Z"
+  }
+}
+```
+
+<h2 style="color: orange;" >Wallet Routes: </h2>
 ### 1. Get All Wallets (Accessible to admin and super admin- Private route)
 
 **GET** `/api/v1/wallet/wallets`
@@ -652,6 +691,327 @@ Supports sorting, pagination, and field filtering.
 - `limit` : Number of data to be showen (default 10)
 
 ### 2. Get logged in User (accessible to logged in user- Private route)
+
+<h2 style="color: orange;" >OTP Routes: </h2>
+
+### 1. Send OTP
+
+- When a new users register with email and password, an OTP having 6 digits is send to the that registered email. Then user later verify this OTP
+- Used for verifying the users
+
+**POST** `/api/v1/otp/send`
+
+#### Request:
+
+```json
+{
+  "email": "tamimchowdhury10@gmail.com",
+  "name": "Tamim"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": null
+}
+```
+
+### 2. Verify OTP
+
+- When a new users register with email and password, an OTP having 6 digits is send to the that registered email. And user is navigated to a verify page. Then user is asked for that OTP that was sent to his email.
+- User submit the OTP.
+- If OTP dosen't match, users will get an error message
+- If OTP matches. User will be verified
+
+**POST** `/api/v1/otp/verify`
+
+#### Request:
+
+```json
+{
+  "email": "tamimchowdhury10@gmail.com",
+  "otp": "624668" // Recieved OTP via email
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "OTP Verified successfully",
+  "data": null
+}
+```
+
+<h2 style="color: orange;" >Stats Route: </h2>
+### 1. Admin Stats (Private Route - Only for Admin)
+
+- Statistical data for admins are handled here.
+- This api sends a lot of analytical data for admin
+
+**POST** `/api/v1/stats/admin`
+
+### 2. Agent Stats (Private Route - Only for Agent)
+
+- Statistical data for agents are handled here.
+- This api sends a lot of analytical data for logged in agent
+
+**POST** `/api/v1/stats/agent`
+
+### 3. User Stats (Private Route - Only for User)
+
+- Statistical data for users are handled here.
+- This api sends a lot of analytical data for logged in user
+
+**POST** `/api/v1/stats/agent`
+
+<h2 style="color: orange;" >News Letter: </h2>
+
+- There are Two routes for news letter.
+- One for when any user registers for newsletter email
+- Another for admin when admin want to view who subscribed for news letter
+
+### 1. Store news letter subscription
+
+**POST** `/api/v1/news-letter/store`
+
+#### Request:
+
+```json
+{
+  "email": "Hello1@gmail.com"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "You have successfully Subscribed to our newsletter",
+  "data": null
+}
+```
+
+
+### 2. Get news letter subscription info (Private Route - Only for admin)
+
+**GET** `/api/v1/news-letter/`
+
+#### Response:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "You have successfully Retrived  newsletter data",
+  "data": [
+    {
+      "_id": "692c152be1eaef7847f27b42",
+      "email": "Hello2@gmail.com",
+      "createdAt": "2025-11-30T09:58:03.796Z",
+      "updatedAt": "2025-11-30T09:58:03.796Z"
+    },
+    {
+      "_id": "692c1590e1eaef7847f27b4c",
+      "email": "a@b.com",
+      "createdAt": "2025-11-30T09:59:44.945Z",
+      "updatedAt": "2025-11-30T09:59:44.945Z"
+    }
+  ]
+}
+```
+
+<h2 style="color: orange;" >Client Message ROute: </h2>
+
+- There are Three routes for client message.
+- One for when any client sends a message via contact us page in frontend
+- Another for admin when admin want to view who messaged
+- And Another for updating the message status from not read to red
+
+### 1. Store Client message
+
+**POST** `/api/v1/client-message/store`
+
+#### Request:
+
+```json
+{
+  "name":"Karim",
+  "email":"Hello1@gmail.com",
+  "subject":"hajgdjagdjagdja",
+  "message":"ahdadhiadhiahdiuahdiuahdiadhiuahd"
+}
+```
+
+#### Response:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Your Message Has been recorded Successfully",
+  "data": null
+}
+```
+### 2. Get Client message (Private - Only for admin)
+
+**GET** `/api/v1/client-message`
+
+#### Request:
+
+```json
+{
+  "name":"Karim",
+  "email":"Hello1@gmail.com",
+  "subject":"hajgdjagdjagdja",
+  "message":"ahdadhiadhiahdiuahdiuahdiadhiuahd"
+}
+```
+
+#### Response:
+
+```json
+{
+    "statusCode": 200,
+    "success": true,
+    "message": "You have successfully Retrived  Client Message data",
+    "data": [
+        {
+            "isRead": false,
+            "_id": "692c3815d01ee796ac9d2bac",
+            "name": "Karim",
+            "email": "Hello1@gmail.com",
+            "subject": "hajgdjagdjagdja",
+            "message": "ahdadhiadhiahdiuahdiuahdiadhiuahd",
+            "createdAt": "2025-11-30T12:27:01.756Z",
+            "updatedAt": "2025-11-30T12:27:01.756Z"
+        },
+        {
+            "_id": "692c38841a4e34e890b33ea8",
+            "name": "Karim",
+            "email": "Hello1@gmail.com",
+            "subject": "hajgdjagdjagdja",
+            "message": "ahdadhiadhiahdiuahdiuahdiadhiuahd",
+            "isRead": false,
+            "createdAt": "2025-11-30T12:28:52.140Z",
+            "updatedAt": "2025-11-30T12:28:52.140Z"
+        }
+    ]
+}
+```
+
+
+
+
+### 3. Update Client message status (Private - Only for admin)
+
+**GET** `/api/v1/client-message/692c38841a4e34e890b33ea8`
+
+
+
+#### Response:
+
+```json
+{
+    "statusCode": 200,
+    "success": true,
+    "message": "You have successfully Updated The State of client message",
+    "data": null
+}
+```
+
+
+
+
+## 📁 Project Structure
+
+```
+vaultPay-server/
+├── .env.example
+├── .gitignore
+├── eslint.config.mjs
+├── package-lock.json
+├── package.json
+├── src/
+│   ├── app/
+│   │   ├── config/
+│   │   │   ├── env.ts
+│   │   │   └── passport.ts
+│   │   ├── constants.ts
+│   │   ├── errorHelpers/
+│   │   │   └── AppError.ts
+│   │   ├── helpers/
+│   │   │   ├── handleCastError.ts
+│   │   │   ├── handleDuplicateError.ts
+│   │   │   ├── handleValidationError.ts
+│   │   │   └── handleZodError.ts
+│   │   ├── interfaces/
+│   │   │   ├── error.types.ts
+│   │   │   └── index.d.ts
+│   │   ├── middlewares/
+│   │   │   ├── checkAuth.ts
+│   │   │   ├── globalErrorHandler.ts
+│   │   │   ├── logger.ts
+│   │   │   ├── notFoundError.ts
+│   │   │   └── validateRequest.ts
+│   │   ├── modules/
+│   │   │   ├── auth/
+│   │   │   │   ├── auth.controller.ts
+│   │   │   │   ├── auth.route.ts
+│   │   │   │   └── auth.service.ts
+│   │   │   ├── sslCommerz/
+│   │   │   │   ├── sslCommerze.interface.ts
+│   │   │   │   └── sslCommerze.service.ts
+│   │   │   ├── system/
+│   │   │   │   ├── system.interface.ts
+│   │   │   │   └── system.model.ts
+│   │   │   ├── transaction/
+│   │   │   │   ├── transaction.controller.ts
+│   │   │   │   ├── transaction.interface.ts
+│   │   │   │   ├── transaction.model.ts
+│   │   │   │   ├── transaction.route.ts
+│   │   │   │   ├── transaction.service.ts
+│   │   │   │   └── transaction.validation.ts
+│   │   │   ├── user/
+│   │   │   │   ├── user.controller.ts
+│   │   │   │   ├── user.interface.ts
+│   │   │   │   ├── user.model.ts
+│   │   │   │   ├── user.route.ts
+│   │   │   │   ├── user.service.ts
+│   │   │   │   └── user.validation.ts
+│   │   │   └── wallet/
+│   │   │       ├── wallet.controller.ts
+│   │   │       ├── wallet.interface.ts
+│   │   │       ├── wallet.model.ts
+│   │   │       ├── wallet.route.ts
+│   │   │       ├── wallet.service.ts
+│   │   │       └── wallet.validation.ts
+│   │   ├── routes/
+│   │   │   └── index.ts
+│   │   └── utils/
+│   │       ├── calculateTransactionFee.ts
+│   │       ├── catchAsync.ts
+│   │       ├── generateTransactionId.ts
+│   │       ├── jwt.ts
+│   │       ├── QueryBuilder.ts
+│   │       ├── seedSuperAdmin.ts
+│   │       ├── seedSystemInformation.ts
+│   │       ├── sendResponse.ts
+│   │       ├── setAuthCookie.ts
+│   │       └── userToken.ts
+│   ├── app.ts
+│   └── server.ts
+└── tsconfig.json
+```
 
 ## 🔧 Installation Guidline:
 

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NewsLetterRoute = void 0;
+const express_1 = require("express");
+const newsLetter_controller_1 = require("./newsLetter.controller");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const newsLetter_validation_1 = require("./newsLetter.validation");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const user_interface_1 = require("../user/user.interface");
+const router = (0, express_1.Router)();
+router.post("/store", (0, validateRequest_1.validateRequest)(newsLetter_validation_1.storeNewsLetterZodSchema), newsLetter_controller_1.NewsLetterController.storeNewsLetterSubscription);
+router.get("/", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), newsLetter_controller_1.NewsLetterController.getNewsLetter);
+exports.NewsLetterRoute = router;

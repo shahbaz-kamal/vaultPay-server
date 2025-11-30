@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClientMessageRoute = void 0;
+const express_1 = require("express");
+const clientMessage_controller_1 = require("./clientMessage.controller");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const clientMessage_validation_1 = require("./clientMessage.validation");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const user_interface_1 = require("../user/user.interface");
+const router = (0, express_1.Router)();
+router.post("/store", (0, validateRequest_1.validateRequest)(clientMessage_validation_1.clientMessageZodSchema), clientMessage_controller_1.ClientMessageController.storeClientMessage);
+router.get("/", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), clientMessage_controller_1.ClientMessageController.getClientMessage);
+router.patch("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), clientMessage_controller_1.ClientMessageController.updateClientMessage);
+exports.ClientMessageRoute = router;

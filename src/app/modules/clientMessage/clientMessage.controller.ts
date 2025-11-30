@@ -1,12 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-import { ClientMessage } from "./clientMessage.model";
 import { CLientMessageService } from "./clientMessage.service";
 
-const storeClientMessage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const storeClientMessage = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
-  console.log(payload);
 
   const response = await CLientMessageService.storeClientMessage(payload);
   console.log(response);
@@ -17,7 +16,7 @@ const storeClientMessage = catchAsync(async (req: Request, res: Response, next: 
     data: null,
   });
 });
-const getClientMessage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const getClientMessage = catchAsync(async (req: Request, res: Response) => {
   const clientMessages = await CLientMessageService.getClientMessage();
 
   sendResponse(res, {
@@ -27,7 +26,7 @@ const getClientMessage = catchAsync(async (req: Request, res: Response, next: Ne
     data: clientMessages,
   });
 });
-const updateClientMessage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const updateClientMessage = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await CLientMessageService.updateClientMessage(id);

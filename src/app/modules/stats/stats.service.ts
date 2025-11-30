@@ -491,6 +491,7 @@ const getStatsForUser = async (userId: string) => {
 
   const [monthlyTransactionAmountByTypeInitial] = await Promise.all([monthlyTransactionAmountByTypeInitialPromise]);
   // Shaping the output
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultMap: any = {};
   monthlyTransactionAmountByTypeInitial.forEach((item) => {
     const key = `${item.year}-${item.month}`;
@@ -765,6 +766,7 @@ const getStatsForAgent = async (userId: string) => {
 
   const [monthlyTransactionAmountByTypeInitial] = await Promise.all([monthlyTransactionAmountByTypeInitialPromise]);
   // Shaping the output
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultMap: any = {};
   monthlyTransactionAmountByTypeInitial.forEach((item) => {
     const key = `${item.year}-${item.month}`;

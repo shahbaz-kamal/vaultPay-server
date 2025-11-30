@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import bcryptJs from "bcryptjs";
+import httpStatus from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
+import { envVars } from "../../config/env";
+import { searchableFields } from "../../constants";
 import AppError from "../../errorHelpers/AppError";
+import { Wallet } from "../wallet/wallet.model";
 import { AgentRequestStatus, IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
-import httpStatus from "http-status-codes";
-import bcryptJs from "bcryptjs";
-import { envVars } from "../../config/env";
-import { JwtPayload } from "jsonwebtoken";
-import { Wallet } from "../wallet/wallet.model";
-import { searchableFields } from "../../constants";
 
-import { QueryBuilder } from "../../utils/QueryBuilder";
 import { deleteFromCloudinary } from "../../config/cloudinary.config";
-import { path } from "pdfkit";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();

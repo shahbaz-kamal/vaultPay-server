@@ -649,7 +649,7 @@ const getAllTransaction = async (query: Record<string, string>) => {
 
 const getMyTransactions = async (decodedToken: JwtPayload, query: Record<string, string>) => {
   const myId = decodedToken.userId;
-  const  myEmail=decodedToken.email;
+  
   const isMyDataExist = await User.findById(myId);
   if (!isMyDataExist) throw new AppError(401, "Your Data is not found. Please contact our support team.");
   const isVerified = isMyDataExist.role === decodedToken.role;

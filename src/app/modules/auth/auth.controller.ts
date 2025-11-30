@@ -123,7 +123,7 @@ const payload=req.body
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "Password changed successfully ",
+      message: " Reset password successfull",
       data: null,
     });
   }

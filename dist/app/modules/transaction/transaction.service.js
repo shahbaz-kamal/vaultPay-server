@@ -536,7 +536,6 @@ const getAllTransaction = (query) => __awaiter(void 0, void 0, void 0, function*
 });
 const getMyTransactions = (decodedToken, query) => __awaiter(void 0, void 0, void 0, function* () {
     const myId = decodedToken.userId;
-    const myEmail = decodedToken.email;
     const isMyDataExist = yield user_model_1.User.findById(myId);
     if (!isMyDataExist)
         throw new AppError_1.default(401, "Your Data is not found. Please contact our support team.");
