@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
@@ -118,7 +117,7 @@ const resetPassword = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
-const payload=req.body
+    const payload = req.body;
     await AuthServices.resetPassword(payload, decodedToken as JwtPayload);
     sendResponse(res, {
       success: true,
@@ -131,7 +130,7 @@ const payload=req.body
 const forgotPassword = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
-  const { email } = req.body;
+    const { email } = req.body;
     await AuthServices.forgotPassword(email);
     sendResponse(res, {
       success: true,
@@ -153,7 +152,7 @@ const googleCallbackController = catchAsync(
     console.log("Google user", user);
     if (!user) throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
     const tokenInfo = await createUserTokens(user);
-    console.log("From google login",tokenInfo)
+    console.log("From google login", tokenInfo);
     setAuthCookie(res, tokenInfo);
     res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
     // sendResponse(res, {

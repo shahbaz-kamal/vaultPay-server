@@ -53,7 +53,7 @@ const createUser = async (payload: Partial<IUser>) => {
   await user[0].save({ session });
   await session.commitTransaction();
   session.endSession();
-  return { user, wallet };
+  return { user:user[0] , wallet };
 };
 
 //const users =new QueryBuilder(User.find(),query)

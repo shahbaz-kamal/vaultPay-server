@@ -9,7 +9,7 @@ import httpStatus from "http-status-codes";
 import { verifyToken } from "../utils/jwt";
 
 export const checkAuth =
-  (...authRoles: string[]) =>
+(...authRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     const accessToken = req.headers.authorization as string || req.cookies.accessToken as string;
     if (!accessToken) throw new AppError(httpStatus.FORBIDDEN, "No token received");

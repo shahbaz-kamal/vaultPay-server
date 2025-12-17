@@ -45,7 +45,7 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
   - **Analytics** — Admins can get a huge nomber of statistical information in this page. like user & agent overview (totaluser/agents), active vs inactive users , system information, transaction overview by type and top performers for both users and agents.
   - **Transaction History** — Admins can get a total transaction history . Also can filter and search transaction history by user name, email , transaction date etc.
   - **Agent and user Management** — Admins can get agent and users information and also can update the status of user and some basic information of users
-  - **Client Messages** — Admins can client messages that came through contact us page from frontend.
+  - **Client Messages** — Admins can get client messages that came through contact us page from frontend.
   - **NewsLetter Information** — Admins can get emails, whose users subscribed for newsletter via newsletter section.
 - **Agents Dashboard** — Agents can perform cash in and add money as well as some more operation like can get statistical data, profile info etc.
   - **Wallet Summary** — Huge statistical data for logged in agent can be accessed.
@@ -72,6 +72,7 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
 - **Super Admin can**
   - View all transactions.
   - Update users profiles as well as admin's profile .
+  - can keep track of client message, newsletter subscriber
 
 ## 🛠 Technology Used
 
@@ -90,7 +91,9 @@ Users can **add balance to their wallets via SSLCommerz**, a reliable online pay
   <img width="12" />
   <img src="https://sslcommerz.com/wp-content/uploads/2021/11/logo.png" height="40" alt="mongodb logo"  />
   <img width="12" />
-  <img src="https://zod.dev/_next/image?url=%2Flogo%2Flogo-glow.png&w=256&q=100" height="40" alt="mongodb logo"  />
+  <img src="https://zod.dev/_next/image?url=%2Flogo%2Flogo-glow.png&w=256&q=100" height="40" alt="Zod Logo"  />
+  <img width="12" />
+  <img src="https://i0.wp.com/community.nodemailer.com/wp-content/uploads/2015/10/n2-2.png?w=422&ssl=1" height="40" alt="mongodb logo"  />
 </div>
 
 ## 💥 Dependencies:
